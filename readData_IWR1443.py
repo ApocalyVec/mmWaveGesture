@@ -1,19 +1,14 @@
 import _thread
+import pickle
 
 import serial
-import time
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
-import statistics
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
 
-import PyQt5
-
-# Change the configuration file name
-from control import control_mouse
-from point_processing import process_2d_pcd
+import datetime
+import os
+import time
 
 import warnings
 
@@ -37,7 +32,7 @@ x = []
 y = []
 z = []
 doppler = []
-
+# features = []
 
 # ------------------------------------------------------------------
 
@@ -163,6 +158,8 @@ def readAndParseData14xx(Dataport, configParameters):
         startIdx = []
         for loc in possibleLocs:
             check = byteVec[loc:loc + 8]
+            # if check == magicWord:
+            #     startIdx.append(loc)
             if np.all(check == magicWord):
                 startIdx.append(loc)
 
@@ -323,17 +320,11 @@ def update():
         z = detObj["z"]
         doppler = detObj["doppler"]  # doppler values for the detected points hopefully in m/s
 
-        # past_x = frameData[len(frameData)-1]["x"]
-    # global avg_x
-    # global avg_y
-    # global avg_z
 
     """
     # test for gesture detection?
     
-    
-    """
-    # get the new x,y average if there are detected points
+        # get the new x,y average if there are detected points
     # if len(x) == 0:
     #     new_avg_x = 0
     # else:
@@ -352,7 +343,6 @@ def update():
     # avg_y = new_avg_y
 
     # set data for the original 2d scatter plot
-    s_original.setData(x, y)
 
     x_disp = 0
     y_disp = 0
@@ -360,23 +350,29 @@ def update():
     fit_y_line = []
     x_ol_removed = []
     y_ol_removed = []
-
+    closest_point = (0, 0, 0)
     if len(x) != 0:
-        x_disp, y_disp, fit_x_line, fit_y_line, x_ol_removed, y_ol_removed = process_2d_pcd(x, y, z, doppler)
+        # x_disp, y_disp, fit_x_line, fit_y_line = process_2d_pcd(x, y, z, doppler)
+        closest_point = process_2d_pcd(x, y, z, doppler)
 
     # s_processed.setData([x_disp], [y_disp])
-    # s_processed.setData([0] * len(z), z)
-    s_processed.setData(x_ol_removed, y_ol_removed)
+    """
 
-    # update control event # TODO use more robust call back interface
-    # control_mouse(x_disp, y_disp)
+    s_original.setData(x, y)
+    s_processed.setData(z, doppler)
 
     QtGui.QApplication.processEvents()
 
     return dataOk
 
 
-# -------------------------    MAIN   -----------------------------------------  
+# -------------------------    MAIN   -----------------------------------------
+today = datetime.datetime.now()
+today = datetime.datetime.now()
+
+root_dn = 'f_data-' + str(today).replace(':', '-').replace(' ', '_')
+os.mkdir(root_dn)
+
 warnings.simplefilter('ignore', np.RankWarning)
 # Configurate the serial port
 CLIport, Dataport = serialConfig(configFileName)
@@ -399,16 +395,15 @@ s_original = p_original.plot([], [], pen=None, symbol='o')
 
 # set the processed plot
 p_processed = win.addPlot()
-p_processed.setXRange(-10, 10)
-p_processed.setYRange(-10, 10)
-p_processed.setLabel('left', text='Y displacement (m)')
-p_processed.setLabel('bottom', text='X displacement (m)')
+p_processed.setXRange(-1, 1)
+p_processed.setYRange(-1, 1)
+p_processed.setLabel('left', text='Z position (m)')
+p_processed.setLabel('bottom', text='Doppler (m/s)')
 s_processed = p_processed.plot([], [], pen=None, symbol='o')
 
 # Main loop
 detObj = {}
 frameData = {}
-currentIndex = 0
 
 
 # animating scatter plot
@@ -433,6 +428,7 @@ def input_thread(a_list):
 interrupt_list = []
 _thread.start_new_thread(input_thread, (interrupt_list,))
 
+
 while True:
     try:
         # Update the data and check if the data is okay
@@ -454,9 +450,9 @@ while True:
 
         if dataOk:
             # Store the current frame into frameData
-            frameData[currentIndex] = detObj
-            currentIndex += 1
-
+            # frameData[currentIndex] = detObj
+            frameData[time.time()] = detObj
+            # features.append([detObj['x'],detObj['y'],detObj['z'],detObj['doppler']])
         # print(x)
         # print(y)
         # print(z)
@@ -470,6 +466,11 @@ while True:
             Dataport.close()
             win.close()
             print("Exiting")
+
+            # save radar frame data
+            file_path = os.path.join(root_dn, 'f_data.p')
+            with open(file_path, 'wb') as pickle_file:
+                pickle.dump(frameData, pickle_file)
             break
 
     # Stop the program and close everything if Ctrl + c is pressed
@@ -479,4 +480,10 @@ while True:
         CLIport.close()
         Dataport.close()
         win.close()
+
+        # save radar frame data
+        file_path = os.path.join(root_dn, 'f_data.p')
+        with open(file_path, 'wb') as pickle_file:
+            pickle.dump(frameData, pickle_file)
+
         break

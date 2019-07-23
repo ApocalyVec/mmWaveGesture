@@ -35,8 +35,9 @@ def get_outliers(array, m=2.):
     return data[s < m].tolist()
 
 
-def distance_to_origin(point):
-    rtn = 0.0
-    for value in point:
-        rtn = rtn + math.pow(value, 2)
-    return math.sqrt(rtn)
+def distance_to_origin(x, y):
+    return math.sqrt(math.pow(x, 2) + math.pow(y, 2))
+    # rtn = 0.0
+    # for value in point:
+    #     rtn = rtn + math.pow(value, 2)
+    # return math.sqrt(rtn)
