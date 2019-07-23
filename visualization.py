@@ -21,14 +21,7 @@ matplotlib.use('Qt5Agg')
 
 import matplotlib.pyplot as plt
 
-# w = 7195
-# h = 3841
-
 plt.ion()
 
 plt.scatter(f_timestamps, f_filler, color='r', label='Radar Data Timestamps')
 plt.scatter(v_timestamps, v_filler, color='b', label='Video Data Timestamps')
-
-# my_dpi=150
-# # plt.figure(figsize=(1500, 1500))
-# # plt.savefig('diff.png')

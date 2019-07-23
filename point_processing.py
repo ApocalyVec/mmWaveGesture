@@ -1,6 +1,6 @@
 import numpy as np
 
-from utility import get_outliers, distance_to_origin
+from utils import get_outliers, distance_to_origin
 
 
 def process_2d_pcd(x, y, z, doppler):
