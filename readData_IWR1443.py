@@ -84,7 +84,7 @@ def update():
         x = -detObj["x"]
         y = detObj["y"]
         z = detObj["z"]
-        doppler = detObj["doppler"]  # doppler values for the detected points hopefully in m/s
+        doppler = detObj["doppler"]  # doppler values for the detected points in m/s
 
     s_original.setData(x, y)
     s_processed.setData(z, doppler)

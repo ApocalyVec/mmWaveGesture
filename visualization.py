@@ -3,8 +3,10 @@ import numpy as np
 
 import os
 
-f_data_fn = 'data/fdata/f_data-2019-06-29_18-30-36.891690/f_data.p'
-v_data_cam1_fn = 'data/vdata/v_data-2019-06-29_18-30-01.876610/cam1'
+# verify the timestamp overlap between vData and fData
+
+f_data_fn = 'data/072319_02/f_data.p'
+v_data_cam1_fn = 'data/072319_02/cam1'
 
 f_data = pickle.load(open(f_data_fn, 'rb'))
 
