@@ -31,7 +31,7 @@ for entry in list(frameData.items()):
 
     data = np.pad(data, ((0, num_padding - data.shape[0]), (0, 0)), 'constant', constant_values=0)
 
-    data = data.reshape((400, 1))  # flatten
+    data = data.reshape((400,))  # flatten
 
     closest_prediction_timestamp = min(list(groundTruth.keys()),
                                        key=lambda x: abs(x - data_timestamp))  # finds the closest binary prediction
@@ -69,13 +69,13 @@ from keras.layers import Dropout
 regressiveClassifier = Sequential()
 
 # batch size = 3337, num_timestep = 100,
-regressiveClassifier.add(LSTM(units=100, return_sequences=True, input_shape=(x_train.shape[1], 400)))
+regressiveClassifier.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1], 400)))
 regressiveClassifier.add(Dropout(0.2))
 
-regressiveClassifier.add(LSTM(units=100, return_sequences=True))
+regressiveClassifier.add(LSTM(units=50, return_sequences=True))
 regressiveClassifier.add(Dropout(0.2))
 
-regressiveClassifier.add(LSTM(units=100, return_sequences=True))
+regressiveClassifier.add(LSTM(units=50, return_sequences=False))
 regressiveClassifier.add(Dropout(0.2))
 
 # dense layer
