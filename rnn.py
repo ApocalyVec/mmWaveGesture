@@ -68,7 +68,20 @@ from keras.layers import Dropout
 # Initialising the RNN
 regressiveClassifier = Sequential()
 
-# first LSTM layer
 # batch size = 3337, num_timestep = 100,
-regressiveClassifier.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1], )))
+regressiveClassifier.add(LSTM(units=100, return_sequences=True, input_shape=(x_train.shape[1], 400)))
 regressiveClassifier.add(Dropout(0.2))
+
+regressiveClassifier.add(LSTM(units=100, return_sequences=True))
+regressiveClassifier.add(Dropout(0.2))
+
+regressiveClassifier.add(LSTM(units=100, return_sequences=True))
+regressiveClassifier.add(Dropout(0.2))
+
+# dense layer
+# sigmoid for binary output
+regressiveClassifier.add(Dense(1, activation='sigmoid'))
+
+regressiveClassifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+regressiveClassifier.fit(x_train, y_train, epochs=100, batch_size=32)
