@@ -27,3 +27,5 @@ plt.ion()
 
 plt.scatter(f_timestamps, f_filler, color='r', label='Radar Data Timestamps')
 plt.scatter(v_timestamps, v_filler, color='b', label='Video Data Timestamps')
+
+plt.draw()
