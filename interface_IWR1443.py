@@ -240,8 +240,14 @@ while True:
         stopFlag.set()
 
         # save radar frame data
-        file_path = os.path.join(root_dn, 'f_data.p')
-        with open(file_path, 'wb') as pickle_file:
-            pickle.dump(frameData, pickle_file)
+
+        is_save = input('do you wish to save the recorded frames? [y/n]')
+
+        if is_save == 'y':
+            file_path = os.path.join(root_dn, 'f_data.p')
+            with open(file_path, 'wb') as pickle_file:
+                pickle.dump(frameData, pickle_file)
+        else:
+            print('exit without saving')
 
         break

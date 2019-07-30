@@ -99,7 +99,6 @@ today = datetime.datetime.now()
 today = datetime.datetime.now()
 
 root_dn = 'f_data-' + str(today).replace(':', '-').replace(' ', '_')
-os.mkdir(root_dn)
 
 warnings.simplefilter('ignore', np.RankWarning)
 # Configurate the serial port
@@ -156,17 +155,7 @@ while True:
         time.sleep(0.033)  # Additional Comment: this is framing frequency Sampling frequency of 30 Hz
 
         if interrupt_list:
-            CLIport.write(('sensorStop\n').encode())
-            CLIport.close()
-            Dataport.close()
-            win.close()
-            print("Exiting")
-
-            # save radar frame data
-            file_path = os.path.join(root_dn, 'f_data.p')
-            with open(file_path, 'wb') as pickle_file:
-                pickle.dump(frameData, pickle_file)
-            break
+            raise KeyboardInterrupt()
 
     # Stop the program and close everything if Ctrl + c is pressed
 
@@ -177,8 +166,14 @@ while True:
         win.close()
 
         # save radar frame data
-        file_path = os.path.join(root_dn, 'f_data.p')
-        with open(file_path, 'wb') as pickle_file:
-            pickle.dump(frameData, pickle_file)
+        is_save = input('do you wish to save the recorded frames? [y/n]')
+
+        if is_save == 'y':
+            os.mkdir(root_dn)
+            file_path = os.path.join(root_dn, 'f_data.p')
+            with open(file_path, 'wb') as pickle_file:
+                pickle.dump(frameData, pickle_file)
+        else:
+            print('exit without saving')
 
         break
