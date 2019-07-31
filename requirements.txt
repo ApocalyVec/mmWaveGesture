@@ -3,3 +3,5 @@ PyQt5
 numpy
 pyqtgraph
 keras
+Pillow
+tensorflow

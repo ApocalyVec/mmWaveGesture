@@ -20,7 +20,7 @@ ax = fig.add_subplot(111, projection='3d')
 
 frame_data = data[1563935364.4086826]
 
-ax.scatter(frame_data['x'], frame_data['y'], frame_data['z'], c='m', marker='D')
+ax.scatter(frame_data['x'], frame_data['y'], frame_data['z'], c=frame_data['doppler'], marker='D')
 
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
