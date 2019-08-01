@@ -11,11 +11,25 @@ from sklearn.cluster import DBSCAN
 
 from scipy.spatial import distance
 
-radarData_path = 'data/072819_zl_onNotOn/f_data-2019-07-28_22-11-01.258054_zl_onNotOn_rnn/f_data.p'
-videoData_path = 'data/072819_zl_onNotOn/v_data-2019-07-28_22-10-32.249041_zl_onNotOn_rnn/cam1'
-mergedImg_path = 'E:/figures/zl_onNotOn_x03y03z03_clustered_esp02ms4_2'
-radar_3dscatter_path = 'E:/figures/radar_3dscatter'
-radar_3dscatter_clustered_path = 'E:/figures/radar_3dscatter_clustered'
+# zl path
+# radarData_path = 'F:/onNotOn_data/072819_zl_onNotOn/f_data-2019-07-28_22-11-01.258054_zl_onNotOn_rnn/f_data.p'
+# videoData_path = 'F:/onNotOn_data/072819_zl_onNotOn/v_data-2019-07-28_22-10-32.249041_zl_onNotOn_rnn/cam1'
+# mergedImg_path = 'F:/figures/zl_onNotOn_x03y03z03_clustered_esp02ms4'
+
+# ag path
+radarData_path = 'F:/onNotOn_data/072819_ag_onNotOn/f_data-2019-07-28_21-44-17.102820_ag_onNotOn_rnn/f_data.p'
+videoData_path = 'F:/onNotOn_data/072819_ag_onNotOn/v_data-2019-07-28_21-44-08.514321_ag_onNotOn_rnn/cam1'
+mergedImg_path = 'F:/figures/ag_onNotOn_x03y03z03_clustered_esp02ms4'
+
+# zy path
+# radarData_path = 'F:/onNotOn_data/072919_zy_onNotOn/f_data.p'
+# videoData_path = 'F:/onNotOn_data/072919_zy_onNotOn/v_data-2019-07-29_11-40-34.810544_zy_onNotOn/cam1'
+# mergedImg_path = 'F:/figures/zy_onNotOn_x03y03z03_clustered_esp02ms4'
+
+# utility directories
+raw_path = 'F:/onNotOn_raw'
+radar_3dscatter_path = 'F:/figures/radar_3dscatter'
+radar_3dscatter_clustered_path = 'F:/figures/radar_3dscatter_clustered'
 
 radar_data = list(pickle.load(open(radarData_path, 'rb')).items())
 radar_data.sort(key=lambda x: x[0])  # sort by timestamp
@@ -29,8 +43,12 @@ black_color = 'rgb(0, 0, 0)'
 DBSCAN_esp = 0.2
 DBSCAN_minSamples = 4
 
-for timestamp, data in radar_data:
-    i = radar_data.index((timestamp, data))
+# input data for the classifier that has the shape n*4*100, n being the number of samples
+num_padding = 50
+data_for_classifier = np.zeros((len(radar_data), num_padding, 4))
+
+for timestamp, fData in radar_data:
+    i = radar_data.index((timestamp, fData))
     print('Processing ' + str(i + 1) + ' of ' + str(len(radar_data)))
 
     closest_video_timestamp = min(videoData_timestamps,
@@ -44,15 +62,22 @@ for timestamp, data in radar_data:
     ax.set_xlim((-0.3, 0.3))
     ax.set_ylim((-0.3, 0.3))
     ax.set_zlim((-0.3, 0.3))
-    ax.scatter(data['x'], data['y'], data['z'], c=data['doppler'], marker='o')
+    ax.scatter(fData['x'], fData['y'], fData['z'], c=fData['doppler'], marker='o')
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
     plt.savefig(os.path.join(radar_3dscatter_path, str(timestamp) + '.jpg'))
     plt.clf()
 
-    # plot cluster ###############
-    data = np.asarray([data['x'], data['y'], data['z']]).transpose()
+    # Do cluster ###############
+    # map the points to their doppler value, this is for retrieving the doppler value after clustering
+    data = np.asarray([fData['x'], fData['y'], fData['z'], fData['doppler']]).transpose()
+    doppler_dict = {}
+    for point in data:
+        doppler_dict[tuple(point[:3])] = point[3:]
+    # get rid of the doppler for clustering TODO should we consider the doppler in clustering?
+    data = data[:, :3]
+
     db = DBSCAN(eps=DBSCAN_esp, min_samples=DBSCAN_minSamples).fit(data)
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     core_samples_mask[db.core_sample_indices_] = True
@@ -90,16 +115,63 @@ for timestamp, data in radar_data:
         ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=12, marker='X')
 
     #############################
-
+    # find the center for each cluster
     clusters_centers = list(map(lambda xyz: np.array([np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])]), clusters))
     clusters.sort(key=lambda xyz: distance.euclidean((0.0, 0.0, 0.0), np.array([np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])])))
 
-    # find the center for each cluster
-    # TODO making sure the closest cluster being colored consistent
+    # plot the clusters
     for xyz, col in zip(clusters, colors):
         ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=28, marker='o')
 
     plt.savefig(os.path.join(radar_3dscatter_clustered_path, str(timestamp) + '.jpg'))
+
+    #############################
+    # center normalize hand cluster
+    if len(clusters) > 0:
+        hand_cluster = clusters[0]
+
+        xmean = np.mean(hand_cluster[:, 0])
+        xmin = np.min(hand_cluster[:, 0])
+        xmax = np.max(hand_cluster[:, 0])
+
+        ymean = np.mean(hand_cluster[:, 1])
+        ymin = np.min(hand_cluster[:, 1])
+        ymax = np.max(hand_cluster[:, 1])
+
+        zmean = np.mean(hand_cluster[:, 2])
+        zmin = np.min(hand_cluster[:, 2])
+        zmax = np.max(hand_cluster[:, 2])
+
+        # append back the doppler
+        # doppler array for this frame
+        point_num = hand_cluster.shape[0]
+
+        doppler_array = np.zeros((point_num, 1))
+        for i in range(point_num):
+            doppler_array[i:, ] = doppler_dict[tuple(hand_cluster[i, :3])]
+        hand_cluster = np.append(hand_cluster, doppler_array, 1)  # TODO this part needs validation, are the put-back dopplers correct?
+
+        # avoid division by zero, check if all the elements in a column are the same
+        if np.all(hand_cluster[:, 0][0] == hand_cluster[:, 0]) or xmin == xmax:
+            hand_cluster[:, 0] = np.zeros((point_num))
+        else:
+            hand_cluster[:, 0] = np.asarray(list(map(lambda x: (x - xmean) / (xmax - xmin), hand_cluster[:, 0])))
+
+        if np.all(hand_cluster[:, 1][0] == hand_cluster[:, 1]) or ymin == ymax:
+            hand_cluster[:, 1] = np.zeros((point_num))
+        else:
+            hand_cluster[:, 1] = np.asarray(list(map(lambda y: (y - ymean) / (ymax - ymin), hand_cluster[:, 1])))
+
+        if np.all(hand_cluster[:, 2][0] == hand_cluster[:, 2]) or zmin == zmax:
+            hand_cluster[:, 2] = np.zeros((point_num))
+        else:
+            hand_cluster[:, 2] = np.asarray(list(map(lambda z: (z - zmean) / (zmax - zmin), hand_cluster[:, 2])))
+
+        normalized_hand_cluster = np.pad(hand_cluster, ((0, num_padding - point_num), (0, 0)), 'constant', constant_values=0)
+    else:
+        normalized_hand_cluster = np.zeros((num_padding, 4))
+
+    data_for_classifier[i] = normalized_hand_cluster
 
     #############################
     # Combine the three images
