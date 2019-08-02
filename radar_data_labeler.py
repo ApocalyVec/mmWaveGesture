@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import style
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from sklearn.cluster import DBSCAN
 
 from scipy.spatial import distance
@@ -14,22 +14,23 @@ from scipy.spatial import distance
 # zl path
 # radarData_path = 'F:/onNotOn_data/072819_zl_onNotOn/f_data-2019-07-28_22-11-01.258054_zl_onNotOn_rnn/f_data.p'
 # videoData_path = 'F:/onNotOn_data/072819_zl_onNotOn/v_data-2019-07-28_22-10-32.249041_zl_onNotOn_rnn/cam1'
-# mergedImg_path = 'F:/figures/zl_onNotOn_x03y03z03_clustered_esp02ms4'
+# mergedImg_path = 'F:/figures/new'
+raw_path = 'F:/onNotOn_raw/zl_onNoton_raw.p'
 
 # ag path
-radarData_path = 'F:/onNotOn_data/072819_ag_onNotOn/f_data-2019-07-28_21-44-17.102820_ag_onNotOn_rnn/f_data.p'
-videoData_path = 'F:/onNotOn_data/072819_ag_onNotOn/v_data-2019-07-28_21-44-08.514321_ag_onNotOn_rnn/cam1'
-mergedImg_path = 'F:/figures/ag_onNotOn_x03y03z03_clustered_esp02ms4'
+# radarData_path = 'F:/onNotOn_data/072819_ag_onNotOn/f_data-2019-07-28_21-44-17.102820_ag_onNotOn_rnn/f_data.p'
+# videoData_path = 'F:/onNotOn_data/072819_ag_onNotOn/v_data-2019-07-28_21-44-08.514321_ag_onNotOn_rnn/cam1'
+# mergedImg_path = 'F:/figures/ag_onNotOn_x03y03z03_clustered_esp02ms4'
+raw_path = 'F:/onNotOn_raw/ag_onNoton_raw.p'
 
 # zy path
-# radarData_path = 'F:/onNotOn_data/072919_zy_onNotOn/f_data.p'
-# videoData_path = 'F:/onNotOn_data/072919_zy_onNotOn/v_data-2019-07-29_11-40-34.810544_zy_onNotOn/cam1'
-# mergedImg_path = 'F:/figures/zy_onNotOn_x03y03z03_clustered_esp02ms4'
+radarData_path = 'F:/onNotOn_data/072919_zy_onNotOn/f_data.p'
+videoData_path = 'F:/onNotOn_data/072919_zy_onNotOn/v_data-2019-07-29_11-40-34.810544_zy_onNotOn/cam1'
+mergedImg_path = 'F:/figures/zy_onNotOn_x03y03z03_clustered_esp02ms4'
+raw_path = 'F:/onNotOn_raw/zy_onNoton_raw.p'
 
-# utility directories
-raw_path = 'F:/onNotOn_raw'
-radar_3dscatter_path = 'F:/figures/radar_3dscatter'
-radar_3dscatter_clustered_path = 'F:/figures/radar_3dscatter_clustered'
+# utility directory to save the pyplots
+radar_3dscatter_path = 'F:/figures/utils/radar_3dscatter'
 
 radar_data = list(pickle.load(open(radarData_path, 'rb')).items())
 radar_data.sort(key=lambda x: x[0])  # sort by timestamp
@@ -39,6 +40,7 @@ videoData_timestamps = list(map(lambda x: float(x.strip('.jpg')), videoData_list
 style.use('fivethirtyeight')
 white_color = 'rgb(255, 255, 255)'
 black_color = 'rgb(0, 0, 0)'
+red_color = 'rgb(255, 0, 0)'
 
 DBSCAN_esp = 0.2
 DBSCAN_minSamples = 4
@@ -47,8 +49,11 @@ DBSCAN_minSamples = 4
 num_padding = 50
 data_for_classifier = np.zeros((len(radar_data), num_padding, 4))
 
-for timestamp, fData in radar_data:
-    i = radar_data.index((timestamp, fData))
+fnt = ImageFont.truetype("arial.ttf", 16)
+
+for i, radarFrame in enumerate(radar_data):
+
+    timestamp, fData = radarFrame
     print('Processing ' + str(i + 1) + ' of ' + str(len(radar_data)))
 
     closest_video_timestamp = min(videoData_timestamps,
@@ -57,18 +62,18 @@ for timestamp, fData in radar_data:
     closest_video_img = Image.open(closest_video_path)
 
     # plot the radar scatter
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.set_xlim((-0.3, 0.3))
-    ax.set_ylim((-0.3, 0.3))
-    ax.set_zlim((-0.3, 0.3))
-    ax.scatter(fData['x'], fData['y'], fData['z'], c=fData['doppler'], marker='o')
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    plt.savefig(os.path.join(radar_3dscatter_path, str(timestamp) + '.jpg'))
-    plt.clf()
+    ax1 = plt.subplot(2, 2, 1, projection='3d')
+    ax1.set_xlim((-0.3, 0.3))
+    ax1.set_ylim((-0.3, 0.3))
+    ax1.set_zlim((-0.3, 0.3))
+    ax1.set_xlabel('X', fontsize=10)
+    ax1.set_ylabel('Y', fontsize=10)
+    ax1.set_zlabel('Z', fontsize=10)
+    ax1.set_title('Detected Points', fontsize=10)
+    # plot the detected points
+    ax1.scatter(fData['x'], fData['y'], fData['z'], c=fData['doppler'], marker='o')
 
+    # Do DBSCAN cluster ###############
     # Do cluster ###############
     # map the points to their doppler value, this is for retrieving the doppler value after clustering
     data = np.asarray([fData['x'], fData['y'], fData['z'], fData['doppler']]).transpose()
@@ -86,14 +91,14 @@ for timestamp, fData in radar_data:
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
     n_noise_ = list(labels).count(-1)
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.set_xlim((-0.3, 0.3))
-    ax.set_ylim((-0.3, 0.3))
-    ax.set_zlim((-0.3, 0.3))
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
+    ax2 = plt.subplot(2, 2, 2, projection='3d')
+    ax2.set_xlim((-0.3, 0.3))
+    ax2.set_ylim((-0.3, 0.3))
+    ax2.set_zlim((-0.3, 0.3))
+    ax2.set_xlabel('X', fontsize=10)
+    ax2.set_ylabel('Y', fontsize=10)
+    ax2.set_zlabel('Z', fontsize=10)
+    ax2.set_title('Clustered Points', fontsize=10)
 
     unique_labels = set(labels)
     colors = [plt.cm.Spectral(each)
@@ -112,21 +117,24 @@ for timestamp, fData in radar_data:
             clusters.append(xyz)  # append this cluster data to the cluster list
         # each cluster is a 3 * n matrix
         xyz = data[class_member_mask & ~core_samples_mask]
-        ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=12, marker='X')
+        ax2.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=12, marker='X')  # plot the noise
 
-    #############################
     # find the center for each cluster
-    clusters_centers = list(map(lambda xyz: np.array([np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])]), clusters))
-    clusters.sort(key=lambda xyz: distance.euclidean((0.0, 0.0, 0.0), np.array([np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])])))
+    clusters_centers = list(
+        map(lambda xyz: np.array([np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])]), clusters))
+    clusters.sort(key=lambda xyz: distance.euclidean((0.0, 0.0, 0.0), np.array(
+        [np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])])))
 
     # plot the clusters
     for xyz, col in zip(clusters, colors):
-        ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=28, marker='o')
-
-    plt.savefig(os.path.join(radar_3dscatter_clustered_path, str(timestamp) + '.jpg'))
+        ax2.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=28,
+                    marker='o')  # plot the cluster points
 
     #############################
     # center normalize hand cluster
+    # clear the hand cluster
+    hand_cluster = []
+
     if len(clusters) > 0:
         hand_cluster = clusters[0]
 
@@ -147,10 +155,12 @@ for timestamp, fData in radar_data:
         point_num = hand_cluster.shape[0]
 
         doppler_array = np.zeros((point_num, 1))
-        for i in range(point_num):
-            doppler_array[i:, ] = doppler_dict[tuple(hand_cluster[i, :3])]
-        hand_cluster = np.append(hand_cluster, doppler_array, 1)  # TODO this part needs validation, are the put-back dopplers correct?
+        for j in range(point_num):
+            doppler_array[j:, ] = doppler_dict[tuple(hand_cluster[j, :3])]
+        hand_cluster = np.append(hand_cluster, doppler_array,
+                                 1)  # TODO this part needs validation, are the put-back dopplers correct?
 
+        # Do the Mean Normalization
         # avoid division by zero, check if all the elements in a column are the same
         if np.all(hand_cluster[:, 0][0] == hand_cluster[:, 0]) or xmin == xmax:
             hand_cluster[:, 0] = np.zeros((point_num))
@@ -166,19 +176,32 @@ for timestamp, fData in radar_data:
             hand_cluster[:, 2] = np.zeros((point_num))
         else:
             hand_cluster[:, 2] = np.asarray(list(map(lambda z: (z - zmean) / (zmax - zmin), hand_cluster[:, 2])))
-
-        normalized_hand_cluster = np.pad(hand_cluster, ((0, num_padding - point_num), (0, 0)), 'constant', constant_values=0)
+        # pad to 50
+        hand_cluster_padded = np.pad(hand_cluster, ((0, num_padding - point_num), (0, 0)), 'constant',
+                                     constant_values=0)
     else:
-        normalized_hand_cluster = np.zeros((num_padding, 4))
+        hand_cluster_padded = np.zeros((num_padding, 4))
 
-    data_for_classifier[i] = normalized_hand_cluster
+    data_for_classifier[i] = hand_cluster_padded
+    # plot the normalized closest cluster
+    ax3 = plt.subplot(2, 2, 3, projection='3d')
+    ax3.set_xlim((-1.0, 1.0))
+    ax3.set_ylim((-1.0, 1.0))
+    ax3.set_zlim((-1.0, 1.0))
+    ax3.set_xlabel('X', fontsize=10)
+    ax3.set_ylabel('Y', fontsize=10)
+    ax3.set_zlabel('Z', fontsize=10)
+    ax3.set_title('CLosest Cluster', fontsize=10)
+
+
+    ax3.scatter(hand_cluster_padded[:, 0], hand_cluster_padded[:, 1], hand_cluster_padded[:, 2], c=hand_cluster_padded[:, 3], marker='o')
 
     #############################
     # Combine the three images
+    plt.savefig(os.path.join(radar_3dscatter_path, str(timestamp) + '.jpg'))
     radar_3dscatter_img = Image.open(os.path.join(radar_3dscatter_path, str(timestamp) + '.jpg'))
-    radar_3dscatter_clustered_img = Image.open(os.path.join(radar_3dscatter_clustered_path, str(timestamp) + '.jpg'))
 
-    images = [closest_video_img, radar_3dscatter_img, radar_3dscatter_clustered_img]  # add image here to arrange them horizontally
+    images = [closest_video_img, radar_3dscatter_img]  # add image here to arrange them horizontally
     widths, heights = zip(*(i.size for i in images))
     total_width = sum(widths)
     max_height = max(heights)
@@ -192,26 +215,26 @@ for timestamp, fData in radar_data:
     draw = ImageDraw.Draw(new_im)
 
     # draw the timestamp difference on the image
-    (x, y) = (50, 70)
+    (x, y) = (20, 10)
     message = "Timestamp Difference, abs(rt-vt): " + str(timestamp_difference)
-    draw.text((x,y), message, fill=white_color)
+    draw.text((x, y), message, fill=white_color, font=fnt)
     # draw the timestamp
-    (x, y) = (50, 50)
+    (x, y) = (20, 30)
     message = "Timestamp: " + str(timestamp)
-    draw.text((x, y), message, fill=white_color)
+    draw.text((x, y), message, fill=white_color, font=fnt)
 
     # draw the number of points
-    (x, y) = (640, 50)
+    (x, y) = (20, 60)
     message = "Number of detected points: " + str(xyz.shape[0])
-    draw.text((x, y), message, fill=black_color)
+    draw.text((x, y), message, fill=white_color, font=fnt)
 
     # draw the number of clusters and number of noise point on the clutter plot
-    (x, y) = (1280, 50)
+    (x, y) = (20, 80)
     message = "Number of clusters: " + str(n_clusters_)
-    draw.text((x, y), message, fill=black_color)
-    (x, y) = (1280, 70)
+    draw.text((x, y), message, fill=white_color, font=fnt)
+    (x, y) = (20, 100)
     message = "Number of outliers: " + str(n_noise_)
-    draw.text((x, y), message, fill=black_color)
+    draw.text((x, y), message, fill=white_color, font=fnt)
 
     # save the combined image
     new_im.save(os.path.join(mergedImg_path, str(timestamp) + '.jpg'))

@@ -30,7 +30,7 @@ those values is updated in the function: update
 x = []
 y = []
 z = []
-doppler = []
+doppler = []  # TODO should the doppler be normalized
 # features = []
 
 # ------------------------------------------------------------------
