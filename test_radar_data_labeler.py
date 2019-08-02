@@ -11,26 +11,28 @@ from sklearn.cluster import DBSCAN
 
 from scipy.spatial import distance
 
+#pickle.dump(data_for_classifier_flattened, open(raw_path, 'wb'))
+
 # zl path
-# radarData_path = '/Users/hanfei/data/072819_zl_onNotOn/f_data-2019-07-28_22-11-01.258054_zl_onNotOn_rnn/f_data.p'
-# videoData_path = '/Users/hanfei/data/072819_zl_onNotOn/v_data-2019-07-28_22-10-32.249041_zl_onNotOn_rnn/cam1'
-# mergedImg_path = '/Users/hanfei/figures/new'
-# raw_path = 'F:/onNotOn_raw/zl_onNoton_raw.p'
+# radarData_path = 'F:/onNotOn_data/072819_zl_onNotOn/f_data-2019-07-28_22-11-01.258054_zl_onNotOn_rnn/f_data.p'
+# videoData_path = 'F:/onNotOn_data/072819_zl_onNotOn/v_data-2019-07-28_22-10-32.249041_zl_onNotOn_rnn/cam1'
+# mergedImg_path = 'F:/figures/zl_onNotOn_x03y03z03_clustered_esp02ms4'
+# raw_path = 'F:/onNotOn_raw/zl_onNoton_raw_flattened.p'
 
 # ag path
-# radarData_path = '/Users/hanfei/data/072819_ag_onNotOn/f_data-2019-07-28_21-44-17.102820_ag_onNotOn_rnn/f_data.p'
-# videoData_path = '/Users/hanfei/data/072819_ag_onNotOn/v_data-2019-07-28_21-44-08.514321_ag_onNotOn_rnn/cam1'
-# mergedImg_path = '/Users/hanfei/figures/ag_onNotOn_x03y03z03_clustered_esp02ms4'
-# raw_path = 'F:/onNotOn_raw/ag_onNoton_raw.p'
+# radarData_path = 'F:/onNotOn_data/072819_ag_onNotOn/f_data-2019-07-28_21-44-17.102820_ag_onNotOn_rnn/f_data.p'
+# videoData_path = 'F:/onNotOn_data/072819_ag_onNotOn/v_data-2019-07-28_21-44-08.514321_ag_onNotOn_rnn/cam1'
+# mergedImg_path = 'F:/figures/ag_onNotOn_x03y03z03_clustered_esp02ms4'
+# raw_path = 'F:/onNotOn_raw/ag_onNoton_raw_flattened.p'
 
 # zy path
-radarData_path = '/Users/hanfei/data/072919_zy_onNotOn/f_data.p'
-videoData_path = '/Users/hanfei/data/072919_zy_onNotOn/v_data-2019-07-29_11-40-34.810544_zy_onNotOn/cam1'
-mergedImg_path = '/Users/hanfei/figures/zy_onNotOn_x03y03z03_clustered_esp02ms4'
-raw_path = 'F:/onNotOn_raw/zy_onNoton_raw.p'
+radarData_path = 'F:/onNotOn_data/072919_zy_onNotOn/f_data.p'
+videoData_path = 'F:/onNotOn_data/072919_zy_onNotOn/v_data-2019-07-29_11-40-34.810544_zy_onNotOn/cam1'
+mergedImg_path = 'F:/figures/zy_onNotOn_x03y03z03_clustered_esp02ms4'
+raw_path = 'F:/onNotOn_raw/zy_onNoton_raw_flattened.p'
 
 # utility directory to save the pyplots
-radar_3dscatter_path = '/Users/hanfei/figures/plots'
+radar_3dscatter_path = 'F:/figures/utils/radar_3dscatter'
 
 radar_data = list(pickle.load(open(radarData_path, 'rb')).items())
 radar_data.sort(key=lambda x: x[0])  # sort by timestamp
@@ -50,7 +52,7 @@ num_padding = 50
 data_for_classifier = np.zeros((len(radar_data), num_padding, 4))
 data_for_classifier_flattened = np.zeros((len(radar_data), 1, 4 * num_padding + 1))
 
-fnt = ImageFont.truetype("Arial.ttf", 16)
+fnt = ImageFont.truetype("arial.ttf", 16)
 
 for i, radarFrame in enumerate(radar_data):
 
@@ -187,7 +189,6 @@ for i, radarFrame in enumerate(radar_data):
     # flatten hand_cluster and add timestamp information
     hand_cluster_padded_flattened = hand_cluster_padded.reshape(( -1))
     hand_cluster_padded_flattened = np.insert(hand_cluster_padded_flattened, 0, timestamp)
-    hand_cluster_padded_flattened = hand_cluster_padded_flattened.reshape(1, -1)
 
     data_for_classifier[i] = hand_cluster_padded
     data_for_classifier_flattened[i] = hand_cluster_padded_flattened

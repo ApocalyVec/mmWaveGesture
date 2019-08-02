@@ -191,7 +191,7 @@ for i, radarFrame in enumerate(radar_data):
     ax3.set_xlabel('X', fontsize=10)
     ax3.set_ylabel('Y', fontsize=10)
     ax3.set_zlabel('Z', fontsize=10)
-    ax3.set_title('CLosest Cluster', fontsize=10)
+    ax3.set_title('Closest Cluster', fontsize=10)
 
 
     ax3.scatter(hand_cluster_padded[:, 0], hand_cluster_padded[:, 1], hand_cluster_padded[:, 2], c=hand_cluster_padded[:, 3], marker='o')
