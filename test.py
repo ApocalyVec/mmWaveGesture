@@ -19,7 +19,7 @@ for folder in os.listdir(path):
         print(folder)
         sub_list = os.listdir(os.path.join(path, folder))
         if '.DS_Store' in sub_list: sub_list.remove('.DS_Store')
-        sub_list = list(map(lambda x: x.strip('.jpg'), sub_list))
+        sub_list = list(map(lambda x: x.strip('.jpg')[x.index('_')+1:], sub_list))
         lst.extend(sub_list)
 
 assert isinstance(lst[0], str)
@@ -29,8 +29,7 @@ data = pd.read_csv(data_file)
 
 timestamp_set = set()
 for timestamp in range(len(data)):
-    timestamp_set.add(data.loc[timestamp].iat[1])
-timestamp_set = list(map(lambda x: str(timestamp.as_integer_ratio()[0]) + '_' + str(timestamp.as_integer_ratio()[1], timestamp_set)))
+    timestamp_set.add(str(data.loc[timestamp].iat[2]) + '_' + str(data.loc[timestamp].iat[3]))
 
 assert isinstance(timestamp_set[0], str)
 
