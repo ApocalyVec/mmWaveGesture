@@ -252,6 +252,9 @@ for i, radarFrame in enumerate(radar_data):
     new_im.save(os.path.join(mergedImg_path, str(timestamp) + '_' + str(timestamp.as_integer_ratio()[0]) + '_' + str(timestamp.as_integer_ratio()[1]) + '.jpg'))
     plt.close('all')
 
+import pandas as pd
+
+data_for_classifier_flattened = pd.DataFrame(data_for_classifier_flattened)
 # Following Code is for labeling ##################################
 
 # label_radar_data = []

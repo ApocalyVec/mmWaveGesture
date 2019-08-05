@@ -11,9 +11,9 @@ from utils import label
 # print('finished')
 import os
 lst = []
-# path = '/Users/hanfei/onNoton_figures'
-path = '/Users/hanfei/figures'
-data_file = '/Users/hanfei/onNotOn_data.csv'
+path = 'F:/figures/all_figures_sub'
+data_file = 'data/onNoton/all_onNotOn.csv'
+
 for folder in os.listdir(path):
     if not (folder == '.DS_Store' or folder == 'utils'):
         print(folder)
@@ -29,16 +29,17 @@ data = pd.read_csv(data_file)
 
 timestamp_set = set()
 for timestamp in range(len(data)):
-    timestamp_set.add(str(data.loc[timestamp].iat[2]) + '_' + str(data.loc[timestamp].iat[3]))
+    timestamp_set.add(str(int(data.loc[timestamp].iat[3])) + '_' + str(int(data.loc[timestamp].iat[4])))
 
-assert isinstance(timestamp_set[0], str)
+assert isinstance(list(timestamp_set)[0], str)
 
 print('# of timestamps from images: ' + str(len(lst)))
 print('# of timestamps from csv: ' + str(len(timestamp_set)))
 
 result = []
 for item in lst:
-    if item not in timestamp_set: result.append(item)
+    if item not in timestamp_set:
+        result.append(item)
 
 print('# of missing timestamps: ' + str(len(result)))
-print('example: ' + result[0])
+# print('example: ' + result[0])
