@@ -237,7 +237,7 @@ for i, radarFrame in enumerate(radar_data):
     draw.text((x, y), message, fill=white_color, font=fnt)
 
     # save the combined image
-    new_im.save(os.path.join(mergedImg_path, str(timestamp) + '_' + timestamp.hex() + '.jpg'))
+    new_im.save(os.path.join(mergedImg_path, str(timestamp) + '_' + str(timestamp.as_integer_ratio()[0]) + '_' + str(timestamp.as_integer_ratio()[1] + '.jpg'))
     plt.close('all')
 
 # Following Code is for labeling ##################################
