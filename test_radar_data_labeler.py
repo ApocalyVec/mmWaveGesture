@@ -50,7 +50,7 @@ DBSCAN_minSamples = 4
 # input data for the classifier that has the shape n*4*100, n being the number of samples
 num_padding = 50
 data_for_classifier = np.zeros((len(radar_data), num_padding, 4))
-data_for_classifier_flattened = np.zeros((len(radar_data), 1, 4 * num_padding + 1))
+data_for_classifier_flattened = np.zeros((len(radar_data), 4 * num_padding + 1 + 1 + 1))  # + 1 + 1 for the timestamp as integer ratio
 
 fnt = ImageFont.truetype("arial.ttf", 16)
 
@@ -188,6 +188,8 @@ for i, radarFrame in enumerate(radar_data):
     # hand_cluster_padded_flattened = hand_cluster_padded.reshape((200))
     # flatten hand_cluster and add timestamp information
     hand_cluster_padded_flattened = hand_cluster_padded.reshape(( -1))
+    hand_cluster_padded_flattened = np.insert(hand_cluster_padded_flattened, 0, timestamp.as_integer_ratio()[1])
+    hand_cluster_padded_flattened = np.insert(hand_cluster_padded_flattened, 0, timestamp.as_integer_ratio()[0])
     hand_cluster_padded_flattened = np.insert(hand_cluster_padded_flattened, 0, timestamp)
 
     data_for_classifier[i] = hand_cluster_padded
@@ -247,7 +249,7 @@ for i, radarFrame in enumerate(radar_data):
     draw.text((x, y), message, fill=white_color, font=fnt)
 
     # save the combined image
-    new_im.save(os.path.join(mergedImg_path, str(timestamp) + '.jpg'))
+    new_im.save(os.path.join(mergedImg_path, str(timestamp) + '_' + str(timestamp.as_integer_ratio()[0]) + '_' + str(timestamp.as_integer_ratio()[1]) + '.jpg'))
     plt.close('all')
 
 # Following Code is for labeling ##################################
