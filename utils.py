@@ -5,7 +5,7 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 from sklearn.cluster import DBSCAN
 from scipy.spatial import distance
-
+import pandas as pd
 
 # FROM https://www.geeksforgeeks.org/linear-regression-python-implementation/
 def estimate_coef(x, y):
@@ -223,3 +223,34 @@ def generate_plot(radar_data, videoData_timestamps, videoData_path, DBSCAN_esp, 
         data_for_classifier_flattened[i] = generate_single_plot(radar_3dscatter_path, mergedImg_path, font, closest_video_img, closest_video_timestamp, xyz,
             n_clusters_, n_noise_, timestamp, hand_cluster_padded)
     return data_for_classifier_flattened
+
+def label(folder_path, data_file):
+    img_folder = os.listdir(folder_path)
+    gesture_timestamp = dict()
+    for gesture in img_folder:
+        if not gesture == '.DS_Store':
+            gesture_timestamp[gesture[0:1]] = os.listdir(os.path.join(folder_path, gesture))
+            gesture_timestamp[gesture[0:1]].remove('.DS_Store')
+            gesture_timestamp[gesture[0:1]] = list(map(lambda x: float(x.strip('.jpg')), gesture_timestamp[gesture[0:1]]))
+
+    data = pd.read_csv(data_file)
+
+    timestamp_set = set()
+    for timestamp in range(len(data)):
+        timestamp_set.add(data.loc[timestamp].iat[1])
+
+    not_found = []
+    for gesture, timestamps in gesture_timestamp.items():
+        for timestamp in timestamps:
+            if timestamp not in timestamp_set:
+                not_found.append(timestamp)
+                print(str(timestamp) + ' , which is in folder ' + str(gesture) + ' not found in csv file')
+                #raise ValueError('found a timestamp that is not in the given csv file!')
+
+    for timestamp in range(len(data)):
+        print('labeling ' + str(timestamp) + ' of ' + str(len(data)))
+        for gesture in gesture_timestamp:
+            if data.loc[timestamp].iat[1] in gesture_timestamp[gesture]:
+                data.loc[timestamp].iat[0] = float(gesture)
+                break
+    return (data, not_found)
