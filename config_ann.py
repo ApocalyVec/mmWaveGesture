@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import pickle
+
 from keras.layers import Dropout
 from sklearn.preprocessing import OneHotEncoder
 
@@ -47,4 +49,6 @@ plt.xlabel('epoch')
 plt.legend(['train'], loc='upper left')
 plt.show()
 
-# classifier.save('F:/config_detection/models/onNotOn_ANN/classifier_080719')
+# plt.savefig('F:/config_detection/models/onNotOn_ANN/history_080719_2')
+classifier.save('F:/config_detection/models/onNotOn_ANN/classifier_080719_2')
+pickle.dump(onehotencoder, open('F:/config_detection/models/onNotOn_ANN/encoder_080719_2', 'wb'))

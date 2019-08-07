@@ -77,10 +77,11 @@ for i, radarFrame in enumerate(radar_data):
     # Do cluster ###############
     # map the points to their doppler value, this is for retrieving the doppler value after clustering
     data = np.asarray([fData['x'], fData['y'], fData['z'], fData['doppler']]).transpose()
+
+    # get rid of the doppler for clustering TODO should we consider the doppler in clustering?
     doppler_dict = {}
     for point in data:
         doppler_dict[tuple(point[:3])] = point[3:]
-    # get rid of the doppler for clustering TODO should we consider the doppler in clustering?
     data = data[:, :3]
 
     db = DBSCAN(eps=DBSCAN_esp, min_samples=DBSCAN_minSamples).fit(data)

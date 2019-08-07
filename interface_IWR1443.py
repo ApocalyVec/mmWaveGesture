@@ -15,6 +15,8 @@ import time
 
 import warnings
 
+from classes.model_wrapper import NeuralNetwork
+from data_utils import preprocess_frame
 from iwr1443_utils import readAndParseData14xx, parseConfigFile
 
 configFileName = '1443config.cfg'
@@ -35,8 +37,6 @@ y = []
 z = []
 doppler = []
 
-
-# features = []
 
 # ------------------------------------------------------------------
 
@@ -103,7 +103,6 @@ today = datetime.datetime.now()
 today = datetime.datetime.now()
 
 root_dn = 'f_data-' + str(today).replace(':', '-').replace(' ', '_')
-os.mkdir(root_dn)
 
 warnings.simplefilter('ignore', np.RankWarning)
 # Configurate the serial port
@@ -136,17 +135,19 @@ s_processed = p_processed.plot([], [], pen=None, symbol='o')
 # Main loop
 detObj = {}
 frameData = {}
+preprocessed_frameArray = []
 
 # reading RNN model
 from keras.models import load_model
 
-regressive_classifier = load_model('trained_models/radar_model/072319_02/regressive_classifier.h5')
-global graph
-graph = tf.get_default_graph()
+regressive_classifier = NeuralNetwork()
+regressive_classifier.load(file_name='trained_models/radar_model/072319_02/regressive_classifier.h5')
+onNotOn_ann_classifier = NeuralNetwork()
+onNotOn_ann_classifier.load(file_name='F:/config_detection/models/onNotOn_ANN/classifier_080719_2.h5')
+onNotOn_encoder = pickle.load(open('F:/config_detection/models/onNotOn_ANN/encoder_080719_2', 'rb'))
 
 rnn_timestep = 100
-num_padding = 100
-
+num_padding = 50
 
 def input_thread(a_list):
     input()
@@ -155,17 +156,35 @@ def input_thread(a_list):
 
 class prediction_thread(Thread):
     def __init__(self, event):
-
         Thread.__init__(self)
         self.stopped = event
 
     def run(self):
         while not self.stopped.wait(0.5):
-            prediction_func()
+            prediction_funct_onNotOn_ANN()
+
 
 x_list = []
-def prediction_func():
 
+
+def prediction_funct_onNotOn_ANN():
+    if len(preprocessed_frameArray) > 0:
+        p = onNotOn_ann_classifier.predict(np.asarray([preprocessed_frameArray[len(preprocessed_frameArray) - 1]]))
+        p = onNotOn_encoder.inverse_transform(p)
+        p = p[0][0]
+        if p == 1:
+            print('No cluster')
+        elif p == 2:
+            print('Thumb is setting')
+        elif p == 3:
+            print('Thumb is raising')
+        elif p == 4:
+            print('Thumb is rubbing')
+        elif p == 5:
+            print('Thumb is rubbing in air')
+
+
+def prediction_func_onNoton_RNN():
     if (len(frameData)) < rnn_timestep:
         print('Warming up')
     else:
@@ -180,7 +199,7 @@ def prediction_func():
             if data.shape[0] > num_padding:
                 raise Exception('Insufficient Padding')
             data = np.pad(data, ((0, num_padding - data.shape[0]), (0, 0)), 'constant', constant_values=0)
-            data = data.reshape((400, ))  # flatten
+            data = data.reshape((400,))  # flatten
 
             x.append(data)  # add one additional dimension
 
@@ -190,19 +209,16 @@ def prediction_func():
         if x.shape != (1, 100, 400):
             print('Prediction: BAD Input Shape')
         else:
-            try:
-                with graph.as_default():
-                    prediction_result = regressive_classifier.predict(x)
-                # print('Prediction: ' + str(prediction_result[0][0]), end='      ')
-                print('Prediction: ', end='      ')
+            prediction_result = regressive_classifier.predict(x)
+            # print('Prediction: ' + str(prediction_result[0][0]), end='      ')
+            print('Prediction: ', end='      ')
 
-                if prediction_result[0][0] > 0.5:
-                    print('Thumb is ON Pointing Finger')
-                else:
-                    print('Thumb is NOT ON Pointing Finger')
+            if prediction_result[0][0] > 0.5:
+                print('Thumb is ON Pointing Finger')
+            else:
+                print('Thumb is NOT ON Pointing Finger')
 
-            except ValueError:
-                print('val err occured')
+
 
 interrupt_list = []
 
@@ -221,9 +237,13 @@ while True:
             # Store the current frame into frameData
             # frameData[currentIndex] = detObj
             frameData[time.time()] = detObj
-            # features.append([detObj['x'],detObj['y'],detObj['z'],detObj['doppler']])
 
-        time.sleep(0.033)  # Additional Comment: this is framing frequency Sampling frequency of 30 Hz
+            frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
+            preprocessed_frameArray.append(preprocess_frame(frameRow))
+
+        # prediction_funct_onNotOn_ANN()
+
+        time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
 
         if interrupt_list:
             raise KeyboardInterrupt()
@@ -244,6 +264,7 @@ while True:
         is_save = input('do you wish to save the recorded frames? [y/n]')
 
         if is_save == 'y':
+            os.mkdir(root_dn)
             file_path = os.path.join(root_dn, 'f_data.p')
             with open(file_path, 'wb') as pickle_file:
                 pickle.dump(frameData, pickle_file)
