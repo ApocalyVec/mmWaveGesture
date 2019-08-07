@@ -5,8 +5,8 @@ import os
 
 # verify the timestamp overlap between vData and fData
 
-f_data_fn = 'data/072319_02/f_data.p'
-v_data_cam1_fn = 'data/072319_02/cam1'
+f_data_fn = 'f_data-2019-08-07_19-24-03.429523/f_data.p'
+v_data_cam1_fn = 'C:/Users/S-Vec/PycharmProjects/shape_detect/v_data-2019-08-07_19-23-42.594640/cam1'
 
 f_data = pickle.load(open(f_data_fn, 'rb'))
 

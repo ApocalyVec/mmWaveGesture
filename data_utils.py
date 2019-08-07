@@ -102,8 +102,8 @@ def preprocess_frame(frame):
 
     return hand_cluster_padded.reshape(output_shape)
 
-frameArray = np.load('F:/test_frameArray.npy')
-start = time.time()
-result = preprocess_frame(frameArray[2])
-end = time.time()
-print('Preprocessing frame took ' + str(end-start))
+# frameArray = np.load('F:/test_frameArray.npy')
+# start = time.time()
+# result = preprocess_frame(frameArray[2])
+# end = time.time()
+# print('Preprocessing frame took ' + str(end-start))

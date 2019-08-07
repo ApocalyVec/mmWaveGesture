@@ -255,3 +255,4 @@ for i, radarFrame in enumerate(radar_data):
 import pandas as pd
 
 data_for_classifier_flattened = pd.DataFrame(data_for_classifier_flattened)
+data_for_classifier_flattened.to_csv('F:/config_detection/csv/*.csv')

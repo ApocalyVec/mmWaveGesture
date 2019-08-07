@@ -19,6 +19,8 @@ from classes.model_wrapper import NeuralNetwork
 from data_utils import preprocess_frame
 from iwr1443_utils import readAndParseData14xx, parseConfigFile
 
+isPredict = False
+
 configFileName = '1443config.cfg'
 
 CLIport = {}
@@ -140,11 +142,12 @@ preprocessed_frameArray = []
 # reading RNN model
 from keras.models import load_model
 
-regressive_classifier = NeuralNetwork()
-regressive_classifier.load(file_name='trained_models/radar_model/072319_02/regressive_classifier.h5')
-onNotOn_ann_classifier = NeuralNetwork()
-onNotOn_ann_classifier.load(file_name='F:/config_detection/models/onNotOn_ANN/classifier_080719_2.h5')
-onNotOn_encoder = pickle.load(open('F:/config_detection/models/onNotOn_ANN/encoder_080719_2', 'rb'))
+if isPredict:
+    regressive_classifier = NeuralNetwork()
+    regressive_classifier.load(file_name='trained_models/radar_model/072319_02/regressive_classifier.h5')
+    onNotOn_ann_classifier = NeuralNetwork()
+    onNotOn_ann_classifier.load(file_name='F:/config_detection/models/onNotOn_ANN/classifier_080719_2.h5')
+    onNotOn_encoder = pickle.load(open('F:/config_detection/models/onNotOn_ANN/encoder_080719_2', 'rb'))
 
 rnn_timestep = 100
 num_padding = 50
@@ -219,14 +222,15 @@ def prediction_func_onNoton_RNN():
                 print('Thumb is NOT ON Pointing Finger')
 
 
-
+# create the interrupt thread
 interrupt_list = []
-
 _thread.start_new_thread(input_thread, (interrupt_list,))
+
 # start the prediction thread
 stopFlag = Event()
-thread = prediction_thread(stopFlag)
-thread.start()
+if isPredict:
+    thread = prediction_thread(stopFlag)
+    thread.start()
 
 while True:
     try:
@@ -241,9 +245,7 @@ while True:
             frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
             preprocessed_frameArray.append(preprocess_frame(frameRow))
 
-        # prediction_funct_onNotOn_ANN()
-
-        time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
+        # time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
 
         if interrupt_list:
             raise KeyboardInterrupt()

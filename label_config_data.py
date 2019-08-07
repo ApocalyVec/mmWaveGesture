@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 
-radar_data_path = 'F:/config_detection/figures/onNoton_csv/all_onNotOn.csv'
+radar_data_path = 'F:/config_detection/figures/onNotOn_csv/all_onNotOn.csv'
 label_folder = 'F:/config_detection/labels/label080719'
 
 class_folders = os.listdir(label_folder)

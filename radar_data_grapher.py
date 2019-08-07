@@ -43,7 +43,7 @@ black_color = 'rgb(0, 0, 0)'
 red_color = 'rgb(255, 0, 0)'
 
 DBSCAN_esp = 0.2
-DBSCAN_minSamples = 4
+DBSCAN_minSamples = 3
 
 # input data for the classifier that has the shape n*4*100, n being the number of samples
 num_padding = 50
