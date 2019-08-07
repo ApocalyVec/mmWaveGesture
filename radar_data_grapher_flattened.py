@@ -14,25 +14,25 @@ from scipy.spatial import distance
 #pickle.dump(data_for_classifier_flattened, open(raw_path, 'wb'))
 
 # zl path
-# radarData_path = 'F:/onNotOn_data/072819_zl_onNotOn/f_data-2019-07-28_22-11-01.258054_zl_onNotOn_rnn/f_data.p'
-# videoData_path = 'F:/onNotOn_data/072819_zl_onNotOn/v_data-2019-07-28_22-10-32.249041_zl_onNotOn_rnn/cam1'
-# mergedImg_path = 'F:/figures/zl_onNotOn_x03y03z03_clustered_esp02ms4'
-# raw_path = 'F:/onNotOn_raw/zl_onNoton_raw_flattened.p'
+radarData_path = 'F:/onNotOn_data/072819_zl_onNotOn/f_data-2019-07-28_22-11-01.258054_zl_onNotOn_rnn/f_data.p'
+videoData_path = 'F:/onNotOn_data/072819_zl_onNotOn/v_data-2019-07-28_22-10-32.249041_zl_onNotOn_rnn/cam1'
+mergedImg_path = 'F:/config_detection/figures/zl_onNotOn_x03y03z03_clustered_esp02ms4'
+raw_path = 'F:/onNotOn_raw/zl_onNoton_raw_flattened.p'
 
 # ag path
 # radarData_path = 'F:/onNotOn_data/072819_ag_onNotOn/f_data-2019-07-28_21-44-17.102820_ag_onNotOn_rnn/f_data.p'
 # videoData_path = 'F:/onNotOn_data/072819_ag_onNotOn/v_data-2019-07-28_21-44-08.514321_ag_onNotOn_rnn/cam1'
-# mergedImg_path = 'F:/figures/ag_onNotOn_x03y03z03_clustered_esp02ms4'
+# mergedImg_path = 'F:/config_detection/figures/ag_onNotOn_x03y03z03_clustered_esp02ms4'
 # raw_path = 'F:/onNotOn_raw/ag_onNoton_raw_flattened.p'
 
 # zy path
-radarData_path = 'F:/onNotOn_data/072919_zy_onNotOn/f_data.p'
-videoData_path = 'F:/onNotOn_data/072919_zy_onNotOn/v_data-2019-07-29_11-40-34.810544_zy_onNotOn/cam1'
-mergedImg_path = 'F:/figures/zy_onNotOn_x03y03z03_clustered_esp02ms4'
-raw_path = 'F:/onNotOn_raw/zy_onNoton_raw_flattened.p'
+# radarData_path = 'F:/onNotOn_data/072919_zy_onNotOn/f_data.p'
+# videoData_path = 'F:/onNotOn_data/072919_zy_onNotOn/v_data-2019-07-29_11-40-34.810544_zy_onNotOn/cam1'
+# mergedImg_path = 'F:/config_detection/figures/zy_onNotOn_x03y03z03_clustered_esp02ms4'
+# raw_path = 'F:/onNotOn_raw/zy_onNoton_raw_flattened.p'
 
 # utility directory to save the pyplots
-radar_3dscatter_path = 'F:/figures/utils/radar_3dscatter'
+radar_3dscatter_path = 'F:/config_detection/figures/utils/radar_3dscatter'
 
 radar_data = list(pickle.load(open(radarData_path, 'rb')).items())
 radar_data.sort(key=lambda x: x[0])  # sort by timestamp
@@ -45,7 +45,7 @@ black_color = 'rgb(0, 0, 0)'
 red_color = 'rgb(255, 0, 0)'
 
 DBSCAN_esp = 0.2
-DBSCAN_minSamples = 4
+DBSCAN_minSamples = 3
 
 # input data for the classifier that has the shape n*4*100, n being the number of samples
 num_padding = 50
@@ -255,44 +255,3 @@ for i, radarFrame in enumerate(radar_data):
 import pandas as pd
 
 data_for_classifier_flattened = pd.DataFrame(data_for_classifier_flattened)
-# Following Code is for labeling ##################################
-
-# label_radar_data = []
-#
-# (x, y) = (50, 30)
-#
-# for i in range(len(radar_data)):
-#     timestamp = radar_data[i][0]
-#     data = radar_data[i][1]
-#
-#     print('Radar Image ' + str(i + 1) + ' of ' + str(len(radar_data)) + '   : ' + str(timestamp), end='')
-#
-#     im = Image.open(os.path.join(mergedImg_path, str(timestamp) + '.jpg'))
-#     draw = ImageDraw.Draw(im)
-#     message = 'Current Image'
-#     white_color = 'rgb(255, 255, 255)'
-#     draw.text((x, y), message, fill=white_color)
-#     im.show()
-#
-#     im = Image.open(os.path.join(mergedImg_path, str(radar_data[i+1][0]) + '.jpg'))
-#     draw = ImageDraw.Draw(im)
-#     message = 'Previous Image'
-#     white_color = 'rgb(255, 0, 255)'
-#     draw.text((x, y), message, fill=white_color)
-#     im.show()
-#
-#     im = Image.open(os.path.join(mergedImg_path, str(radar_data[i-1][0]) + '.jpg'))
-#     draw = ImageDraw.Draw(im)
-#     message = 'Next Image'
-#     white_color = 'rgb(0, 255, 255)'
-#     draw.text((x, y), message, fill=white_color)
-#     im.show()
-#
-#     while 1:
-#         label = int(input(' Label 0 for unchanged, 1 for lifting, and 2 for setting'))
-#         if label == 1 or label == 2 or label == 0:
-#             break
-#         else:
-#             print('Label must be 0, 1 or 2; your input is ' + str(label))
-#
-#     label_radar_data.append((timestamp, data, label))

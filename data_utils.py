@@ -14,7 +14,7 @@ def preprocess_frame(frame):
     :return hand cluster of shape (200)
     """
     DBSCAN_esp = 0.2
-    DBSCAN_minSamples = 4
+    DBSCAN_minSamples = 3
     num_padding = 50
 
     clusters = []
