@@ -15,6 +15,7 @@ Y = onehotencoder.fit_transform(Y).toarray()
 
 from keras.models import Sequential
 from keras.layers import Dense
+from keras import optimizers
 
 # Initializing the ANN
 classifier = Sequential()
@@ -29,10 +30,21 @@ classifier.add(Dense(units=200, kernel_initializer='uniform', activation='relu')
 classifier.add(Dropout(p=0.1))
 # Adding the output hidden layer
 # units = 1 for output_dim = 1
-classifier.add(Dense(units=5, kernel_initializer='uniform', activation='sigmoid'))
+classifier.add(Dense(units=5, kernel_initializer='uniform', activation='softmax'))
 
 # Compiling the ANN
-classifier.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+adam = optimizers.adam(lr=0.0005, clipnorm=1.)  # use half the learning rate as adam optimizer default
+classifier.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Fitting the ANN to the Training set - the actual training
 history = classifier.fit(X, Y, batch_size=1, epochs=100)
+
+import matplotlib.pyplot as plt
+plt.plot(history.history['acc'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train'], loc='upper left')
+plt.show()
+
+# classifier.save('F:/config_detection/models/onNotOn_ANN/classifier_080719')
