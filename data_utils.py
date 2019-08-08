@@ -93,7 +93,7 @@ def preprocess_frame(frame):
             hand_cluster[:, 2] = np.asarray(list(map(lambda z: (z - zmean) / (zmax - zmin), hand_cluster[:, 2])))
         # pad to 50
         if point_num > num_padding:
-            hand_cluster_padded = hand_cluster[:, :50]  # we take only the first 50 points
+            hand_cluster_padded = hand_cluster[:50, :]  # we take only the first 50 points
         else:
             hand_cluster_padded = np.pad(hand_cluster, ((0, num_padding - point_num), (0, 0)), 'constant',
                                      constant_values=0)

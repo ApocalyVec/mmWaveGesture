@@ -13,11 +13,12 @@ from scipy.spatial import distance
 
 #pickle.dump(data_for_classifier_flattened, open(raw_path, 'wb'))
 
+# OnNotOn #######################################################################################################
 # zl path
-radarData_path = 'F:/onNotOn_data/072819_zl_onNotOn/f_data-2019-07-28_22-11-01.258054_zl_onNotOn_rnn/f_data.p'
-videoData_path = 'F:/onNotOn_data/072819_zl_onNotOn/v_data-2019-07-28_22-10-32.249041_zl_onNotOn_rnn/cam1'
-mergedImg_path = 'F:/config_detection/figures/zl_onNotOn_x03y03z03_clustered_esp02ms4'
-raw_path = 'F:/onNotOn_raw/zl_onNoton_raw_flattened.p'
+# radarData_path = 'F:/onNotOn_data/072819_zl_onNotOn/f_data-2019-07-28_22-11-01.258054_zl_onNotOn_rnn/f_data.p'
+# videoData_path = 'F:/onNotOn_data/072819_zl_onNotOn/v_data-2019-07-28_22-10-32.249041_zl_onNotOn_rnn/cam1'
+# mergedImg_path = 'F:/config_detection/figures/zl_onNotOn_x03y03z03_clustered_esp02ms4'
+# raw_path = 'F:/onNotOn_raw/zl_onNoton_raw_flattened.p'
 
 # ag path
 # radarData_path = 'F:/onNotOn_data/072819_ag_onNotOn/f_data-2019-07-28_21-44-17.102820_ag_onNotOn_rnn/f_data.p'
@@ -31,8 +32,26 @@ raw_path = 'F:/onNotOn_raw/zl_onNoton_raw_flattened.p'
 # mergedImg_path = 'F:/config_detection/figures/zy_onNotOn_x03y03z03_clustered_esp02ms4'
 # raw_path = 'F:/onNotOn_raw/zy_onNoton_raw_flattened.p'
 
+# Palmpad Test ####################################################################################################
+# Angled Path
+# radarData_path = 'F:/palmpad/f_data_zy_ABC_angled/f_data.p'
+# videoData_path = 'F:/palmpad/v_data_zy_ABC_angled/cam2'
+# mergedImg_path = 'F:/palmpad/figures/angled'
+# Vertical Path
+# radarData_path = 'F:/palmpad/f_data_zy_ABC_vertical/f_data.p'
+# videoData_path = 'F:/palmpad/v_data_zy_ABC_vertical/cam2'
+# mergedImg_path = 'F:/palmpad/figures/vertical'
+# Flat Index Path
+# radarData_path = 'F:/palmpad/f_data_zy_ABC_flat_index/f_data.p'
+# videoData_path = 'F:/palmpad/v_data_zy_ABC_flat_index/cam2'
+# mergedImg_path = 'F:/palmpad/figures/flat_index'
+# Flat Thumb Path
+radarData_path = 'F:/palmpad/f_data_zy_ABC_flat_thumb/f_data.p'
+videoData_path = 'F:/palmpad/v_data_zy_ABC_flat_thumb/cam2'
+mergedImg_path = 'F:/palmpad/figures/flat_thumb'
+
 # utility directory to save the pyplots
-radar_3dscatter_path = 'F:/config_detection/figures/utils/radar_3dscatter'
+radar_3dscatter_path = 'F:/palmpad/figures/utils/radar_3dscatter'
 
 radar_data = list(pickle.load(open(radarData_path, 'rb')).items())
 radar_data.sort(key=lambda x: x[0])  # sort by timestamp
@@ -48,7 +67,7 @@ DBSCAN_esp = 0.2
 DBSCAN_minSamples = 3
 
 # input data for the classifier that has the shape n*4*100, n being the number of samples
-num_padding = 50
+num_padding = 100
 data_for_classifier = np.zeros((len(radar_data), num_padding, 4))
 data_for_classifier_flattened = np.zeros((len(radar_data), 4 * num_padding + 1 + 1 + 1))  # + 1 + 1 for the timestamp as integer ratio
 
@@ -180,12 +199,12 @@ for i, radarFrame in enumerate(radar_data):
         else:
             hand_cluster[:, 2] = np.asarray(list(map(lambda z: (z - zmean) / (zmax - zmin), hand_cluster[:, 2])))
         # pad to 50
+
         hand_cluster_padded = np.pad(hand_cluster, ((0, num_padding - point_num), (0, 0)), 'constant',
-                                     constant_values=0)
+                                 constant_values=0)
     else:
         hand_cluster_padded = np.zeros((num_padding, 4))
 
-    # hand_cluster_padded_flattened = hand_cluster_padded.reshape((200))
     # flatten hand_cluster and add timestamp information
     hand_cluster_padded_flattened = hand_cluster_padded.reshape(( -1))
     hand_cluster_padded_flattened = np.insert(hand_cluster_padded_flattened, 0, timestamp.as_integer_ratio()[1])
@@ -255,4 +274,4 @@ for i, radarFrame in enumerate(radar_data):
 import pandas as pd
 
 data_for_classifier_flattened = pd.DataFrame(data_for_classifier_flattened)
-data_for_classifier_flattened.to_csv('F:/config_detection/csv/*.csv')
+# data_for_classifier_flattened.to_csv('F:/config_detection/csv/*.csv')

@@ -19,6 +19,13 @@ from classes.model_wrapper import NeuralNetwork
 from data_utils import preprocess_frame
 from iwr1443_utils import readAndParseData14xx, parseConfigFile
 
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib import style
+import matplotlib
+import PyQt5
+
+
 isPredict = False
 
 configFileName = '1443config.cfg'
@@ -39,6 +46,11 @@ y = []
 z = []
 doppler = []
 
+# configure pyplot
+style.use('fivethirtyeight')
+fig = plt.figure()
+ax1 = fig.add_subplot(1,1,1)
+matplotlib.use('Qt5Agg')
 
 # ------------------------------------------------------------------
 
@@ -92,12 +104,15 @@ def update():
         z = detObj["z"]
         doppler = detObj["doppler"]  # doppler values for the detected points in m/s
 
-    s_original.setData(x, y)
-    s_processed.setData(z, doppler)
-
-    QtGui.QApplication.processEvents()
-
     return dataOk
+
+def animate():
+    if len(frameData) != 0:
+        data = frameData[last_timestamp]
+        ax1.clear()
+
+        # ax1.plot(data['x'], data['y'])
+        ax1.plot([0] * 5, [0] * 5)
 
 
 # -------------------------    MAIN   -----------------------------------------
@@ -112,27 +127,6 @@ CLIport, Dataport = serialConfig(configFileName)
 
 # Get the configuration parameters from the configuration file
 configParameters = parseConfigFile(configFileName)
-
-# START QtAPPfor the plot
-app = QtGui.QApplication([])
-
-# Set the plot 
-pg.setConfigOption('background', 'w')
-win = pg.GraphicsWindow(title="2D scatter plot")
-p_original = win.addPlot()
-p_original.setXRange(-0.5, 0.5)
-p_original.setYRange(0, 1.5)
-p_original.setLabel('left', text='Y position (m)')
-p_original.setLabel('bottom', text='X position (m)')
-s_original = p_original.plot([], [], pen=None, symbol='o')
-
-# set the processed plot
-p_processed = win.addPlot()
-p_processed.setXRange(-1, 1)
-p_processed.setYRange(-1, 1)
-p_processed.setLabel('left', text='Z position (m)')
-p_processed.setLabel('bottom', text='Doppler (m/s)')
-s_processed = p_processed.plot([], [], pen=None, symbol='o')
 
 # Main loop
 detObj = {}
@@ -232,6 +226,10 @@ if isPredict:
     thread = prediction_thread(stopFlag)
     thread.start()
 
+last_timestamp = time.time()
+
+# set up the live plot
+
 while True:
     try:
         # Update the data and check if the data is okay
@@ -240,12 +238,15 @@ while True:
         if dataOk:
             # Store the current frame into frameData
             # frameData[currentIndex] = detObj
-            frameData[time.time()] = detObj
+            last_timestamp = time.time()
+            frameData[last_timestamp] = detObj
 
             frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
             preprocessed_frameArray.append(preprocess_frame(frameRow))
 
-        time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
+        # time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
+            animate()
+            plt.show()
 
         if interrupt_list:
             raise KeyboardInterrupt()
@@ -256,7 +257,6 @@ while True:
         CLIport.write(('sensorStop\n').encode())
         CLIport.close()
         Dataport.close()
-        win.close()
 
         # stop prediction thread
         stopFlag.set()
