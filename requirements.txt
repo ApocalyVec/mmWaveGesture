@@ -1,3 +1,4 @@
+pandas
 matplotlib
 PyQt5
 numpy

@@ -39,7 +39,6 @@ y = []
 z = []
 doppler = []
 
-
 # ------------------------------------------------------------------
 
 # Function to configure the serial ports and send the data from
@@ -232,6 +231,7 @@ if isPredict:
     thread = prediction_thread(stopFlag)
     thread.start()
 
+input("Press Enter to start!...")
 while True:
     try:
         # Update the data and check if the data is okay

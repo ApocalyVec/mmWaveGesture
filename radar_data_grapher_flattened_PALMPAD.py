@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
 import os
+import shutil
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -13,46 +14,16 @@ from scipy.spatial import distance
 
 #pickle.dump(data_for_classifier_flattened, open(raw_path, 'wb'))
 
-# OnNotOn #######################################################################################################
-# zl path
-# radarData_path = 'F:/onNotOn_data/072819_zl_onNotOn/f_data-2019-07-28_22-11-01.258054_zl_onNotOn_rnn/f_data.p'
-# videoData_path = 'F:/onNotOn_data/072819_zl_onNotOn/v_data-2019-07-28_22-10-32.249041_zl_onNotOn_rnn/cam1'
-# mergedImg_path = 'F:/config_detection/figures/zl_onNotOn_x03y03z03_clustered_esp02ms4'
-# raw_path = 'F:/onNotOn_raw/zl_onNoton_raw_flattened.p'
-
-# ag path
-# radarData_path = 'F:/onNotOn_data/072819_ag_onNotOn/f_data-2019-07-28_21-44-17.102820_ag_onNotOn_rnn/f_data.p'
-# videoData_path = 'F:/onNotOn_data/072819_ag_onNotOn/v_data-2019-07-28_21-44-08.514321_ag_onNotOn_rnn/cam1'
-# mergedImg_path = 'F:/config_detection/figures/ag_onNotOn_x03y03z03_clustered_esp02ms4'
-# raw_path = 'F:/onNotOn_raw/ag_onNoton_raw_flattened.p'
-
-# zy path
-# radarData_path = 'F:/onNotOn_data/072919_zy_onNotOn/f_data.p'
-# videoData_path = 'F:/onNotOn_data/072919_zy_onNotOn/v_data-2019-07-29_11-40-34.810544_zy_onNotOn/cam1'
-# mergedImg_path = 'F:/config_detection/figures/zy_onNotOn_x03y03z03_clustered_esp02ms4'
-# raw_path = 'F:/onNotOn_raw/zy_onNoton_raw_flattened.p'
-
-# Palmpad Test ####################################################################################################
-# Angled Path
-# radarData_path = 'F:/palmpad/f_data_zy_ABC_angled/f_data.p'
-# videoData_path = 'F:/palmpad/v_data_zy_ABC_angled/cam2'
-# mergedImg_path = 'F:/palmpad/figures/angled'
-# Vertical Path
-# radarData_path = 'F:/palmpad/f_data_zy_ABC_vertical/f_data.p'
-# videoData_path = 'F:/palmpad/v_data_zy_ABC_vertical/cam2'
-# mergedImg_path = 'F:/palmpad/figures/vertical'
-# Flat Index Path
-# radarData_path = 'F:/palmpad/f_data_zy_ABC_flat_index/f_data.p'
-# videoData_path = 'F:/palmpad/v_data_zy_ABC_flat_index/cam2'
-# mergedImg_path = 'F:/palmpad/figures/flat_index'
-# Flat Thumb Path
-# radarData_path = 'F:/palmpad/f_data_zy_ABC_flat_thumb/f_data.p'
-# videoData_path = 'F:/palmpad/v_data_zy_ABC_flat_thumb/cam2'
-# mergedImg_path = 'F:/palmpad/figures/flat_thumb'
-# Writing Classification ####################################################################################################
-radarData_path = 'F:/palmpad/f_data_ya_A/f_data.p'
-videoData_path = 'F:/palmpad/v_data_ya_A/cam2'
-mergedImg_path = 'F:/palmpad/figures/ya_A'
+# ya 1 ######################################################
+# radarData_path = 'F:/palmpad/data/f_data_ya_1/f_data.p'
+# videoData_path = 'F:/palmpad/data/v_data_ya_1/cam2'
+# mergedImg_path = 'F:/palmpad/figures/ya_1'
+# out_path = 'F:/palmpad/csv/ya_1'
+# zy 1 ######################################################
+radarData_path = 'F:/palmpad/data/f_data_zy_1/f_data.p'
+videoData_path = 'F:/palmpad/data/v_data_zy_1/cam2'
+mergedImg_path = 'F:/palmpad/figures/zy_1'
+out_path = 'F:/palmpad/csv/zy_1'
 
 # utility directory to save the pyplots
 radar_3dscatter_path = 'F:/palmpad/figures/utils/radar_3dscatter'
@@ -77,10 +48,76 @@ data_for_classifier_flattened = np.zeros((len(radar_data), 4 * num_padding + 1 +
 
 fnt = ImageFont.truetype("arial.ttf", 16)
 
+# Retrieve the first timestamp
+starting_timestamp = radar_data[0][0]
+
+interval_index = 1
+
+# removed and recreate the merged image folder
+if os.path.isdir(mergedImg_path):
+    shutil.rmtree(mergedImg_path)
+os.mkdir(mergedImg_path)
+
+intervaled_data_list = []
+intervaled_data = []
+
+interval_sec = 5
+sample_per_sec = 15
+sample_per_interval = interval_sec * sample_per_sec
+
+print('Label Cheat-sheet:')
+print('1 for A')
+print('4 for D')
+print('12 for L')
+print('13 for M')
+print('16 for P')
+
+label_array = []
+
+
 for i, radarFrame in enumerate(radar_data):
 
+    # retrieve the data
     timestamp, fData = radarFrame
-    print('Processing ' + str(i + 1) + ' of ' + str(len(radar_data)))
+
+    # calculate the interval
+    if (timestamp - starting_timestamp) /  5.0 >= 1.0:
+        # pad to sample_per_interval
+        intervaled_data = np.asarray(intervaled_data)
+        if intervaled_data.shape[0] < sample_per_interval:
+            intervaled_data = np.concatenate((intervaled_data, np.zeros((sample_per_interval - intervaled_data.shape[0], num_padding*4+3))))
+        elif intervaled_data.shape[0] > sample_per_interval:
+            intervaled_data = intervaled_data[:sample_per_interval, :]
+
+        # append the label column
+        # intervaled_data = np.concatenate((label_array, intervaled_data), axis=1)
+        intervaled_data_list.append(intervaled_data)
+
+        # decide the label
+        if interval_index % 5 == 1:
+            label_array.append(1.0)  # for label A
+        elif interval_index % 5 == 2:
+            label_array.append(4.0)  # for label D
+        elif interval_index % 5 == 3:
+            label_array.append(12.0)  # for label L
+        elif interval_index % 5 == 4:
+            label_array.append(13.0)  # for label M
+        elif interval_index % 5 == 0:
+            label_array.append(16.0)  # for label P
+        print('Label for the last interval is ' + str(label_array[len(label_array)-1]))
+
+        # reset the interval data
+        intervaled_data = []
+        starting_timestamp = timestamp
+        interval_index = interval_index + 1
+
+    mergedImg_path_intervaled = os.path.join(mergedImg_path, str(interval_index))
+
+    if not os.path.isdir(mergedImg_path_intervaled):
+        os.mkdir(mergedImg_path_intervaled)
+
+    print('Processing ' + str(i + 1) + ' of ' + str(len(radar_data)) + ', interval = ' + str(interval_index))
+
 
     closest_video_timestamp = min(videoData_timestamps,
                                   key=lambda x: abs(x - timestamp))
@@ -217,6 +254,7 @@ for i, radarFrame in enumerate(radar_data):
 
     data_for_classifier[i] = hand_cluster_padded
     data_for_classifier_flattened[i] = hand_cluster_padded_flattened
+    intervaled_data.append(hand_cluster_padded_flattened)
 
     # plot the normalized closest cluster
     ax3 = plt.subplot(2, 2, 3, projection='3d')
@@ -272,10 +310,49 @@ for i, radarFrame in enumerate(radar_data):
     draw.text((x, y), message, fill=white_color, font=fnt)
 
     # save the combined image
-    new_im.save(os.path.join(mergedImg_path, str(timestamp) + '_' + str(timestamp.as_integer_ratio()[0]) + '_' + str(timestamp.as_integer_ratio()[1]) + '.jpg'))
+    new_im.save(os.path.join(mergedImg_path_intervaled, str(timestamp) + '_' + str(timestamp.as_integer_ratio()[0]) + '_' + str(timestamp.as_integer_ratio()[1]) + '_' + str(interval_index) + '.jpg'))
     plt.close('all')
+
+# process the last interval ##########################################################################
+intervaled_data = np.asarray(intervaled_data)
+if intervaled_data.shape[0] < sample_per_interval:
+    intervaled_data = np.concatenate(
+        (intervaled_data, np.zeros((sample_per_interval - intervaled_data.shape[0], num_padding * 4 + 3))))
+elif intervaled_data.shape[0] > sample_per_interval:
+    intervaled_data = intervaled_data[:sample_per_interval, :]
+intervaled_data_list.append(intervaled_data)
+if interval_index % 5 == 1:
+    label_array.append(1.0)  # for label A
+elif interval_index % 5 == 2:
+    label_array.append(4.0)  # for label D
+elif interval_index % 5 == 3:
+    label_array.append(12.0)  # for label L
+elif interval_index % 5 == 4:
+    label_array.append(13.0)  # for label M
+elif interval_index % 5 == 0:
+    label_array.append(16.0)  # for label P
+print('Label for the last interval is ' + str(label_array[len(label_array) - 1]))
+
+# start of post processing ##########################################################################
 
 import pandas as pd
 
 data_for_classifier_flattened = pd.DataFrame(data_for_classifier_flattened)
+intervaled_data_list = np.asarray(intervaled_data_list)
+label_array = np.asarray(label_array)
+# remove the timestamp for the classifier
+intervaled_data_ts_removed = []
+for i_data in intervaled_data_list:
+    intervaled_data_ts_removed.append(np.delete(np.delete(np.delete(i_data, 1, 1), 1, 1), 1, 1))
+intervaled_data_ts_removed = np.asarray(intervaled_data_ts_removed)
+
+print('Saving csv and npy...')
+data_for_classifier_flattened.to_csv(os.path.join(out_path, 'flattened'))
+np.save(os.path.join(out_path, 'intervaled'), intervaled_data_list)
+np.save(os.path.join(out_path, 'intervaled_ts_removed'), intervaled_data_ts_removed)
+np.save(os.path.join(out_path, 'label_array'), label_array)
+
+print('Done!')
+
 # data_for_classifier_flattened.to_csv('F:/config_detection/csv/*.csv')
+
