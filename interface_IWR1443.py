@@ -103,7 +103,7 @@ def update():
 today = datetime.datetime.now()
 today = datetime.datetime.now()
 
-root_dn = 'f_data-' + str(today).replace(':', '-').replace(' ', '_')
+root_dn = 'data/f_data-' + str(today).replace(':', '-').replace(' ', '_')
 
 warnings.simplefilter('ignore', np.RankWarning)
 # Configurate the serial port
@@ -115,7 +115,7 @@ configParameters = parseConfigFile(configFileName)
 # START QtAPPfor the plot
 app = QtGui.QApplication([])
 
-# Set the plot 
+# Set the plot
 pg.setConfigOption('background', 'w')
 win = pg.GraphicsWindow(title="2D scatter plot")
 p_original = win.addPlot()
@@ -142,11 +142,11 @@ preprocessed_frameArray = []
 from keras.models import load_model
 
 if isPredict:
-    regressive_classifier = NeuralNetwork()
-    regressive_classifier.load(file_name='trained_models/radar_model/072319_02/regressive_classifier.h5')
+    # regressive_classifier = NeuralNetwork()
+    # regressive_classifier.load(file_name='trained_models/radar_model/072319_02/regressive_classifier.h5')
     onNotOn_ann_classifier = NeuralNetwork()
-    onNotOn_ann_classifier.load(file_name='F:/config_detection/models/onNotOn_ANN/classifier_080719_2.h5')
-    onNotOn_encoder = pickle.load(open('F:/config_detection/models/onNotOn_ANN/encoder_080719_2', 'rb'))
+    onNotOn_ann_classifier.load(file_name='F:/config_detection/models/onNotOn_ANN/classifier_080919_2.h5')
+    onNotOn_encoder = pickle.load(open('F:/config_detection/models/onNotOn_ANN/encoder_080919_2', 'rb'))
 
 rnn_timestep = 100
 num_padding = 50
@@ -166,9 +166,6 @@ class prediction_thread(Thread):
             prediction_funct_onNotOn_ANN()
 
 
-x_list = []
-
-
 def prediction_funct_onNotOn_ANN():
     if len(preprocessed_frameArray) > 0:
         p = onNotOn_ann_classifier.predict(np.asarray([preprocessed_frameArray[len(preprocessed_frameArray) - 1]]))
@@ -186,40 +183,42 @@ def prediction_funct_onNotOn_ANN():
             print('Thumb is rubbing in air')
 
 
-def prediction_func_onNoton_RNN():
-    if (len(frameData)) < rnn_timestep:
-        print('Warming up')
-    else:
-        x = []
+# def prediction_func_onNoton_RNN():
+#     if (len(frameData)) < rnn_timestep:
+#         print('Warming up')
+#     else:
+#         x = []
+#
+#         pred_data = list(frameData.items())
+#         pred_data = pred_data[len(pred_data) - rnn_timestep:]
+#
+#         for entry in pred_data:
+#             data = entry[1]
+#             data = np.asarray([data['x'], data['y'], data['z'], data['doppler']]).transpose()
+#             if data.shape[0] > num_padding:
+#                 raise Exception('Insufficient Padding')
+#             data = np.pad(data, ((0, num_padding - data.shape[0]), (0, 0)), 'constant', constant_values=0)
+#             data = data.reshape((400,))  # flatten
+#
+#             x.append(data)  # add one additional dimension
+#
+#         x = np.asarray(x)
+#         x = np.expand_dims(x, axis=0)
+#
+#         if x.shape != (1, 100, 400):
+#             print('Prediction: BAD Input Shape')
+#         else:
+#             prediction_result = regressive_classifier.predict(x)
+#             # print('Prediction: ' + str(prediction_result[0][0]), end='      ')
+#             print('Prediction: ', end='      ')
+#
+#             if prediction_result[0][0] > 0.5:
+#                 print('Thumb is ON Pointing Finger')
+#             else:
+#                 print('Thumb is NOT ON Pointing Finger')
 
-        pred_data = list(frameData.items())
-        pred_data = pred_data[len(pred_data) - rnn_timestep:]
 
-        for entry in pred_data:
-            data = entry[1]
-            data = np.asarray([data['x'], data['y'], data['z'], data['doppler']]).transpose()
-            if data.shape[0] > num_padding:
-                raise Exception('Insufficient Padding')
-            data = np.pad(data, ((0, num_padding - data.shape[0]), (0, 0)), 'constant', constant_values=0)
-            data = data.reshape((400,))  # flatten
-
-            x.append(data)  # add one additional dimension
-
-        x = np.asarray(x)
-        x = np.expand_dims(x, axis=0)
-
-        if x.shape != (1, 100, 400):
-            print('Prediction: BAD Input Shape')
-        else:
-            prediction_result = regressive_classifier.predict(x)
-            # print('Prediction: ' + str(prediction_result[0][0]), end='      ')
-            print('Prediction: ', end='      ')
-
-            if prediction_result[0][0] > 0.5:
-                print('Thumb is ON Pointing Finger')
-            else:
-                print('Thumb is NOT ON Pointing Finger')
-
+input("Press Enter to start!...")
 
 # create the interrupt thread
 interrupt_list = []
@@ -231,7 +230,6 @@ if isPredict:
     thread = prediction_thread(stopFlag)
     thread.start()
 
-input("Press Enter to start!...")
 while True:
     try:
         # Update the data and check if the data is okay
@@ -239,7 +237,6 @@ while True:
 
         if dataOk:
             # Store the current frame into frameData
-            # frameData[currentIndex] = detObj
             frameData[time.time()] = detObj
 
             frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()

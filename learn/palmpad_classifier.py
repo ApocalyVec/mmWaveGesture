@@ -8,11 +8,12 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import LSTM
 from keras.layers import Dropout
+from keras import optimizers
 
 # get the data
 from sklearn.preprocessing import OneHotEncoder
 
-input_dir_list = ['F:/palmpad/csv/zy_1/']
+input_dir_list = ['D:/zy_1/']
 
 x_train = None
 y_train = None
@@ -43,27 +44,31 @@ sample_per_interval = interval_sec * sample_per_sec
 regressiveClassifier = Sequential()
 
 # batch size = 3337, num_timestep = 100,
-regressiveClassifier.add(LSTM(units=400, input_shape=(sample_per_interval, 400)))
+regressiveClassifier.add(LSTM(units=400, return_sequences=True,  input_shape=(sample_per_interval, 400)))
+regressiveClassifier.add(Dropout(rate=0.2))
+
+regressiveClassifier.add(LSTM(units=400, return_sequences=True))
+regressiveClassifier.add(Dropout(rate=0.2))
+
+regressiveClassifier.add(LSTM(units=400, return_sequences=True))
 regressiveClassifier.add(Dropout(0.2))
 
-# regressiveClassifier.add(LSTM(units=400, return_sequences=True))
-# regressiveClassifier.add(Dropout(0.2))
-#
-# regressiveClassifier.add(LSTM(units=400, return_sequences=True))
-# regressiveClassifier.add(Dropout(0.2))
+regressiveClassifier.add(LSTM(units=400, return_sequences=False))  # or return_sequences is default at False
+regressiveClassifier.add(Dropout(rate=0.2))
 
 # dense layer
-regressiveClassifier.add(Dense(units=400, kernel_initializer='uniform', activation='relu'))
-regressiveClassifier.add(Dropout(p=0.1))
-
-regressiveClassifier.add(Dense(units=400, kernel_initializer='uniform', activation='relu'))
-regressiveClassifier.add(Dropout(p=0.1))
+# regressiveClassifier.add(Dense(units=400, kernel_initializer='uniform', activation='relu'))
+# regressiveClassifier.add(Dropout(rate=0.1))
+#
+# regressiveClassifier.add(Dense(units=400, kernel_initializer='uniform', activation='relu'))
+# regressiveClassifier.add(Dropout(rate=0.1))
 
 regressiveClassifier.add(Dense(5, activation='softmax'))
 
-regressiveClassifier.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+adam_lr5e_4 = optimizers.adam(lr=5e-5, clipnorm=1.)  # use half the learning rate as adam optimizer default
+regressiveClassifier.compile(optimizer=adam_lr5e_4, loss='categorical_crossentropy', metrics=['accuracy'])
 
-history = regressiveClassifier.fit(x_train, y_train, epochs=100, batch_size=1)
+history = regressiveClassifier.fit(x_train, y_train, epochs=50000, batch_size=10)
 
 # plot train history
 import matplotlib.pyplot as plt
@@ -86,3 +91,5 @@ plt.show()
 # date = '080819'
 # regressiveClassifier.save(os.path.join('F:/palmpad/models', date + 'classifier.h5'))
 # pickle.dump(onehotencoder, open(os.path.join('F:/palmpad/models', date + 'encoder.p', 'wb'), 'wb'))
+
+# TODO change learning rate

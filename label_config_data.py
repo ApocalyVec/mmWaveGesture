@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 radar_data_path = 'F:/config_detection/figures/onNotOn_csv/all_onNotOn.csv'
-label_folder = 'F:/config_detection/labels/label080719'
+label_folder = 'F:/config_detection/labels/label080919'
 
 class_folders = os.listdir(label_folder)
 radar_array = pd.read_csv(radar_data_path).values[:, 1:]  # remove the index column
@@ -13,6 +13,7 @@ class_dict = {}
 for cf in class_folders:
     class_category = cf.split('_')[0]  # the first element in the file name is the categorical label
     class_file_list = os.listdir(os.path.join(label_folder, cf))
+    class_file_list = filter(lambda x: x != '.DS_Store', class_file_list)
     for fn in class_file_list:
         fn = fn.strip('.jpg')
         timestamp = (int(fn.split('_')[1]), int(fn.split('_')[2]))
@@ -25,3 +26,5 @@ for row in radar_array:
         radar_array_labeled[i] = row
         radar_array_labeled[i][0] = class_dict[(int(row[2]), int(row[3]))]  # put the label on
         i += 1
+
+# pd.DataFrame(radar_array_labeled).to_csv('F:/config_detection/labels/labeled_onNotOn_080919.csv')

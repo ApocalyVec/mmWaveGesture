@@ -5,11 +5,11 @@ import pickle
 from keras.layers import Dropout
 from sklearn.preprocessing import OneHotEncoder
 
-label_path = 'F:\config_detection\labels/labeled_onNotOn_080719.csv'
-label_df = pd.read_csv(label_path)
+labeled_radar_data_path = 'F:/config_detection/labels/labeled_onNotOn_080919.csv'
+label_radar_df = pd.read_csv(labeled_radar_data_path)
 
-X = label_df.iloc[:, 5:]
-Y = label_df.iloc[:, 1]
+X = label_radar_df.iloc[:, 5:]
+Y = label_radar_df.iloc[:, 1]
 Y = np.asarray(Y)
 Y = np.expand_dims(Y, axis=1)
 onehotencoder = OneHotEncoder(categories='auto')
@@ -35,8 +35,8 @@ classifier.add(Dropout(p=0.1))
 classifier.add(Dense(units=5, kernel_initializer='uniform', activation='softmax'))
 
 # Compiling the ANN
-adam = optimizers.adam(lr=0.0005, clipnorm=1.)  # use half the learning rate as adam optimizer default
-classifier.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
+adam_lr5e_4 = optimizers.adam(lr=0.0005, clipnorm=1.)  # use half the learning rate as adam optimizer default
+classifier.compile(optimizer=adam_lr5e_4, loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Fitting the ANN to the Training set - the actual training
 history = classifier.fit(X, Y, batch_size=1, epochs=100)
@@ -50,5 +50,5 @@ plt.legend(['train'], loc='upper left')
 plt.show()
 
 # plt.savefig('F:/config_detection/models/onNotOn_ANN/history_080719_2')
-classifier.save('F:/config_detection/models/onNotOn_ANN/classifier_080719_2')
-pickle.dump(onehotencoder, open('F:/config_detection/models/onNotOn_ANN/encoder_080719_2', 'wb'))
+classifier.save('F:/config_detection/models/onNotOn_ANN/classifier_080919_2')
+pickle.dump(onehotencoder, open('F:/config_detection/models/onNotOn_ANN/encoder_080919_2', 'wb'))

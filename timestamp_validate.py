@@ -11,8 +11,8 @@ from utils import label
 # print('finished')
 import os
 lst = []
-path = 'F:/config_detection/figures/all_figures_sub'
-data_file = 'F:/config_detection/figures/onNoton_csv/all_onNotOn.csv'
+path = 'F:/config_detection/labels/label080919'
+data_file = 'F:/config_detection/labels/labeled_onNotOn_080919.csv'
 
 for folder in os.listdir(path):
     if not (folder == '.DS_Store' or folder == 'utils'):

@@ -9,6 +9,7 @@ from matplotlib import style
 
 from PIL import Image, ImageDraw, ImageFont
 from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import MinMaxScaler
 
 from scipy.spatial import distance
 
@@ -198,8 +199,16 @@ for i, radarFrame in enumerate(radar_data):
     # clear the hand cluster
     hand_cluster = []
 
+    bbox = (20.0, 20.0, 20.0)
+
     if len(clusters) > 0:
         hand_cluster = clusters[0]
+
+        # if the cluster is outside the 20*20*20 cm bounding box
+        if distance.euclidean((0.0, 0.0, 0.0), np.array(
+        [np.mean(hand_cluster[:, 0]), np.mean(hand_cluster[:, 1]), np.mean(hand_cluster[:, 2])])) > distance.euclidean((0.0, 0.0, 0.0), bbox):
+            hand_cluster = np.zeros(hand_cluster.shape)
+
 
         xmean = np.mean(hand_cluster[:, 0])
         xmin = np.min(hand_cluster[:, 0])
@@ -220,6 +229,11 @@ for i, radarFrame in enumerate(radar_data):
         doppler_array = np.zeros((point_num, 1))
         for j in range(point_num):
             doppler_array[j:, ] = doppler_dict[tuple(hand_cluster[j, :3])]
+
+        # min-max normalize the velocity
+        minMaxScaler = MinMaxScaler()
+        doppler_array = minMaxScaler.fit_transform(doppler_array)
+
         hand_cluster = np.append(hand_cluster, doppler_array,
                                  1)  # TODO this part needs validation, are the put-back dopplers correct?
 
@@ -310,7 +324,8 @@ for i, radarFrame in enumerate(radar_data):
     draw.text((x, y), message, fill=white_color, font=fnt)
 
     # save the combined image
-    new_im.save(os.path.join(mergedImg_path_intervaled, str(timestamp) + '_' + str(timestamp.as_integer_ratio()[0]) + '_' + str(timestamp.as_integer_ratio()[1]) + '_' + str(interval_index) + '.jpg'))
+    new_im.save(os.path.join(mergedImg_path_intervaled, str(timestamp) + '_' + str(timestamp.as_integer_ratio()[0]) +
+                             '_' + str(timestamp.as_integer_ratio()[1]) + '_' + str(interval_index) +'.jpg'))
     plt.close('all')
 
 # process the last interval ##########################################################################
