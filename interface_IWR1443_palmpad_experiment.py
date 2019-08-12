@@ -137,6 +137,7 @@ s_processed = p_processed.plot([], [], pen=None, symbol='o')
 detObj = {}
 frameData = {}
 preprocessed_frameArray = []
+frameArray = []
 
 # reading RNN model
 from keras.models import load_model
@@ -239,12 +240,12 @@ while True:
 
         if dataOk:
             # Store the current frame into frameData
-            frameData[time.time()] = detObj
 
             frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
+            frameArray.append(time.time(), frameRow)
             preprocessed_frameArray.append(preprocess_frame(frameRow))
 
-            time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
+        time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
 
         if interrupt_list:
             raise KeyboardInterrupt()

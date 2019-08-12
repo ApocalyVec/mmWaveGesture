@@ -1,3 +1,4 @@
+scikit-learn
 pandas
 matplotlib
 PyQt5

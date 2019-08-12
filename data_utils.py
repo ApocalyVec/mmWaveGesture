@@ -7,6 +7,9 @@ from sklearn.cluster import DBSCAN
 
 import time
 
+from sklearn.preprocessing import MinMaxScaler
+
+
 def preprocess_frame(frame):
     """
 
@@ -15,12 +18,14 @@ def preprocess_frame(frame):
     """
     DBSCAN_esp = 0.2
     DBSCAN_minSamples = 3
-    num_padding = 50
+    num_padding = 100
+
+    bbox = (0.2, 0.2, 0.2)
 
     clusters = []
     doppler_dict = {}
 
-    output_shape = (200)
+    output_shape = (400)
 
     for point in frame:
         doppler_dict[tuple(point[:3])] = point[3:]
@@ -49,56 +54,61 @@ def preprocess_frame(frame):
 
     if len(clusters) > 0:
         hand_cluster = clusters[0]
-
-        if len(hand_cluster) < DBSCAN_minSamples: # if this is just the noise cluster
-            return np.zeros(output_shape)
-
-        xmean = np.mean(hand_cluster[:, 0])
-        xmin = np.min(hand_cluster[:, 0])
-        xmax = np.max(hand_cluster[:, 0])
-
-        ymean = np.mean(hand_cluster[:, 1])
-        ymin = np.min(hand_cluster[:, 1])
-        ymax = np.max(hand_cluster[:, 1])
-
-        zmean = np.mean(hand_cluster[:, 2])
-        zmin = np.min(hand_cluster[:, 2])
-        zmax = np.max(hand_cluster[:, 2])
-
-        # append back the doppler
-        # doppler array for this frame
         point_num = hand_cluster.shape[0]
 
-        doppler_array = np.zeros((point_num, 1))
-        for j in range(point_num):
-            doppler_array[j:, ] = doppler_dict[tuple(hand_cluster[j, :3])]
-        hand_cluster = np.append(hand_cluster, doppler_array,
-                                 1)  # TODO this part needs validation, are the put-back dopplers correct?
-
-        # Do the Mean Normalization
-        # avoid division by zero, check if all the elements in a column are the same
-        if np.all(hand_cluster[:, 0][0] == hand_cluster[:, 0]) or xmin == xmax:
-            hand_cluster[:, 0] = np.zeros((point_num))
+        # if the cluster is outside the 20*20*20 cm bounding box
+        distance_from_center = distance.euclidean((0.0, 0.0, 0.0), np.array(
+        [np.mean(hand_cluster[:, 0]), np.mean(hand_cluster[:, 1]), np.mean(hand_cluster[:, 2])]))
+        if distance_from_center > distance.euclidean((0.0, 0.0, 0.0), bbox):
+            hand_cluster = np.zeros((hand_cluster.shape[0], hand_cluster.shape[1] + 1))
         else:
-            hand_cluster[:, 0] = np.asarray(list(map(lambda x: (x - xmean) / (xmax - xmin), hand_cluster[:, 0])))
 
-        if np.all(hand_cluster[:, 1][0] == hand_cluster[:, 1]) or ymin == ymax:
-            hand_cluster[:, 1] = np.zeros((point_num))
-        else:
-            hand_cluster[:, 1] = np.asarray(list(map(lambda y: (y - ymean) / (ymax - ymin), hand_cluster[:, 1])))
+            xmean = np.mean(hand_cluster[:, 0])
+            xmin = np.min(hand_cluster[:, 0])
+            xmax = np.max(hand_cluster[:, 0])
 
-        if np.all(hand_cluster[:, 2][0] == hand_cluster[:, 2]) or zmin == zmax:
-            hand_cluster[:, 2] = np.zeros((point_num))
-        else:
-            hand_cluster[:, 2] = np.asarray(list(map(lambda z: (z - zmean) / (zmax - zmin), hand_cluster[:, 2])))
+            ymean = np.mean(hand_cluster[:, 1])
+            ymin = np.min(hand_cluster[:, 1])
+            ymax = np.max(hand_cluster[:, 1])
+
+            zmean = np.mean(hand_cluster[:, 2])
+            zmin = np.min(hand_cluster[:, 2])
+            zmax = np.max(hand_cluster[:, 2])
+
+            # append back the doppler
+            # doppler array for this frame
+            doppler_array = np.zeros((point_num, 1))
+            for j in range(point_num):
+                doppler_array[j:, ] = doppler_dict[tuple(hand_cluster[j, :3])]
+            # min-max normalize the velocity
+            minMaxScaler = MinMaxScaler()
+            doppler_array = minMaxScaler.fit_transform(doppler_array)
+
+            hand_cluster = np.append(hand_cluster, doppler_array,
+                                     1)  # TODO this part needs validation, are the put-back dopplers correct?
+
+            # Do the Mean Normalization
+            # avoid division by zero, check if all the elements in a column are the same
+            if np.all(hand_cluster[:, 0][0] == hand_cluster[:, 0]) or xmin == xmax:
+                hand_cluster[:, 0] = np.zeros((point_num))
+            else:
+                hand_cluster[:, 0] = np.asarray(list(map(lambda x: (x - xmean) / (xmax - xmin), hand_cluster[:, 0])))
+
+            if np.all(hand_cluster[:, 1][0] == hand_cluster[:, 1]) or ymin == ymax:
+                hand_cluster[:, 1] = np.zeros((point_num))
+            else:
+                hand_cluster[:, 1] = np.asarray(list(map(lambda y: (y - ymean) / (ymax - ymin), hand_cluster[:, 1])))
+
+            if np.all(hand_cluster[:, 2][0] == hand_cluster[:, 2]) or zmin == zmax:
+                hand_cluster[:, 2] = np.zeros((point_num))
+            else:
+                hand_cluster[:, 2] = np.asarray(list(map(lambda z: (z - zmean) / (zmax - zmin), hand_cluster[:, 2])))
+
         # pad to 50
-        if point_num > num_padding:
-            hand_cluster_padded = hand_cluster[:50, :]  # we take only the first 50 points
-        else:
-            hand_cluster_padded = np.pad(hand_cluster, ((0, num_padding - point_num), (0, 0)), 'constant',
-                                     constant_values=0)
+        hand_cluster_padded = np.pad(hand_cluster, ((0, num_padding - point_num), (0, 0)), 'constant',
+                                 constant_values=0)
     else:
-        hand_cluster_padded = np.zeros(output_shape)
+        hand_cluster_padded = np.zeros((num_padding, 4))
 
     return hand_cluster_padded.reshape(output_shape)
 

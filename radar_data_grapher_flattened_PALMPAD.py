@@ -13,13 +13,36 @@ from sklearn.preprocessing import MinMaxScaler
 
 from scipy.spatial import distance
 
-#pickle.dump(data_for_classifier_flattened, open(raw_path, 'wb'))
+# ya 0 ######################################################
+radarData_path = 'F:/palmpad/data/f_data_ya_0/f_data.p'
+videoData_path = 'F:/palmpad/data/v_data_ya_0/cam2'
+mergedImg_path = 'F:/palmpad/figures/ya_0'
+out_path = 'F:/palmpad/csv/ya_0'
 
 # ya 1 ######################################################
-# radarData_path = 'F:/palmpad/data/f_data_ya_1/f_data.p'
-# videoData_path = 'F:/palmpad/data/v_data_ya_1/cam2'
-# mergedImg_path = 'F:/palmpad/figures/ya_1'
-# out_path = 'F:/palmpad/csv/ya_1'
+radarData_path = 'F:/palmpad/data/f_data_ya_1/f_data.p'
+videoData_path = 'F:/palmpad/data/v_data_ya_1/cam2'
+mergedImg_path = 'F:/palmpad/figures/ya_1'
+out_path = 'F:/palmpad/csv/ya_1'
+
+# zl 0 ######################################################
+radarData_path = 'F:/palmpad/data/f_data_zl_0/f_data.p'
+videoData_path = 'F:/palmpad/data/v_data_zl_0/cam2'
+mergedImg_path = 'F:/palmpad/figures/zl_0'
+out_path = 'F:/palmpad/csv/zl_0'
+
+# zl 1 ######################################################
+radarData_path = 'F:/palmpad/data/f_data_zl_1/f_data.p'
+videoData_path = 'F:/palmpad/data/v_data_zl_1/cam2'
+mergedImg_path = 'F:/palmpad/figures/zl_1'
+out_path = 'F:/palmpad/csv/zl_1'
+
+# zy 0 ######################################################
+radarData_path = 'F:/palmpad/data/f_data_zy_0/f_data.p'
+videoData_path = 'F:/palmpad/data/v_data_zy_0/cam2'
+mergedImg_path = 'F:/palmpad/figures/zy_0'
+out_path = 'F:/palmpad/csv/zy_0'
+#
 # zy 1 ######################################################
 radarData_path = 'F:/palmpad/data/f_data_zy_1/f_data.p'
 videoData_path = 'F:/palmpad/data/v_data_zy_1/cam2'
@@ -75,6 +98,8 @@ print('16 for P')
 
 label_array = []
 
+num_write = 2
+this_label = 1.0
 
 for i, radarFrame in enumerate(radar_data):
 
@@ -82,7 +107,7 @@ for i, radarFrame in enumerate(radar_data):
     timestamp, fData = radarFrame
 
     # calculate the interval
-    if (timestamp - starting_timestamp) /  5.0 >= 1.0:
+    if (timestamp - starting_timestamp) >= 5.0:
         # pad to sample_per_interval
         intervaled_data = np.asarray(intervaled_data)
         if intervaled_data.shape[0] < sample_per_interval:
@@ -95,24 +120,37 @@ for i, radarFrame in enumerate(radar_data):
         intervaled_data_list.append(intervaled_data)
 
         # decide the label
-        if interval_index % 5 == 1:
-            label_array.append(1.0)  # for label A
-        elif interval_index % 5 == 2:
-            label_array.append(4.0)  # for label D
-        elif interval_index % 5 == 3:
-            label_array.append(12.0)  # for label L
-        elif interval_index % 5 == 4:
-            label_array.append(13.0)  # for label M
-        elif interval_index % 5 == 0:
-            label_array.append(16.0)  # for label P
-        print('Label for the last interval is ' + str(label_array[len(label_array)-1]))
+        if num_write == 1:
+            if interval_index % (5 * num_write) == 1:
+                this_label = 1.0
+            elif interval_index % (5 * num_write) == 2:
+                this_label = 4.0  # for label D
+            elif interval_index % (5 * num_write) == 3:
+                this_label = 12.0  # for label L
+            elif interval_index % (5 * num_write) == 4:
+                this_label = 13.0  # for label M
+            elif interval_index % (5 * num_write) == 0:
+                this_label = 16.0  # for label P
+        elif num_write == 2:
+            if interval_index % (5 * num_write) == 1 or interval_index % (5 * num_write) == 2:
+                this_label = 1.0
+            elif interval_index % (5 * num_write) == 3 or interval_index % (5 * num_write) == 4:
+                this_label = 4.0  # for label D
+            elif interval_index % (5 * num_write) == 5 or interval_index % (5 * num_write) == 6:
+                this_label = 12.0  # for label L
+            elif interval_index % (5 * num_write) == 7 or interval_index % (5 * num_write) == 8:
+                this_label = 13.0  # for label M
+            elif interval_index % (5 * num_write) == 9 or interval_index % (5 * num_write) == 0:
+                this_label = 16.0  # for label P
+        label_array.append(this_label)  # for label A
+        print('Label for the last interval is ' + str(this_label))
 
         # reset the interval data
         intervaled_data = []
-        starting_timestamp = timestamp
+        starting_timestamp = starting_timestamp + 5.0
         interval_index = interval_index + 1
 
-    mergedImg_path_intervaled = os.path.join(mergedImg_path, str(interval_index))
+    mergedImg_path_intervaled = os.path.join(mergedImg_path, str(interval_index-1))
 
     if not os.path.isdir(mergedImg_path_intervaled):
         os.mkdir(mergedImg_path_intervaled)
@@ -199,62 +237,61 @@ for i, radarFrame in enumerate(radar_data):
     # clear the hand cluster
     hand_cluster = []
 
-    bbox = (20.0, 20.0, 20.0)
+    bbox = (0.2, 0.2, 0.2)
 
     if len(clusters) > 0:
         hand_cluster = clusters[0]
-
-        # if the cluster is outside the 20*20*20 cm bounding box
-        if distance.euclidean((0.0, 0.0, 0.0), np.array(
-        [np.mean(hand_cluster[:, 0]), np.mean(hand_cluster[:, 1]), np.mean(hand_cluster[:, 2])])) > distance.euclidean((0.0, 0.0, 0.0), bbox):
-            hand_cluster = np.zeros(hand_cluster.shape)
-
-
-        xmean = np.mean(hand_cluster[:, 0])
-        xmin = np.min(hand_cluster[:, 0])
-        xmax = np.max(hand_cluster[:, 0])
-
-        ymean = np.mean(hand_cluster[:, 1])
-        ymin = np.min(hand_cluster[:, 1])
-        ymax = np.max(hand_cluster[:, 1])
-
-        zmean = np.mean(hand_cluster[:, 2])
-        zmin = np.min(hand_cluster[:, 2])
-        zmax = np.max(hand_cluster[:, 2])
-
-        # append back the doppler
-        # doppler array for this frame
         point_num = hand_cluster.shape[0]
 
-        doppler_array = np.zeros((point_num, 1))
-        for j in range(point_num):
-            doppler_array[j:, ] = doppler_dict[tuple(hand_cluster[j, :3])]
-
-        # min-max normalize the velocity
-        minMaxScaler = MinMaxScaler()
-        doppler_array = minMaxScaler.fit_transform(doppler_array)
-
-        hand_cluster = np.append(hand_cluster, doppler_array,
-                                 1)  # TODO this part needs validation, are the put-back dopplers correct?
-
-        # Do the Mean Normalization
-        # avoid division by zero, check if all the elements in a column are the same
-        if np.all(hand_cluster[:, 0][0] == hand_cluster[:, 0]) or xmin == xmax:
-            hand_cluster[:, 0] = np.zeros((point_num))
+        # if the cluster is outside the 20*20*20 cm bounding box
+        distance_from_center = distance.euclidean((0.0, 0.0, 0.0), np.array(
+        [np.mean(hand_cluster[:, 0]), np.mean(hand_cluster[:, 1]), np.mean(hand_cluster[:, 2])]))
+        if distance_from_center > distance.euclidean((0.0, 0.0, 0.0), bbox):
+            hand_cluster = np.zeros((hand_cluster.shape[0], hand_cluster.shape[1] + 1))
         else:
-            hand_cluster[:, 0] = np.asarray(list(map(lambda x: (x - xmean) / (xmax - xmin), hand_cluster[:, 0])))
 
-        if np.all(hand_cluster[:, 1][0] == hand_cluster[:, 1]) or ymin == ymax:
-            hand_cluster[:, 1] = np.zeros((point_num))
-        else:
-            hand_cluster[:, 1] = np.asarray(list(map(lambda y: (y - ymean) / (ymax - ymin), hand_cluster[:, 1])))
+            xmean = np.mean(hand_cluster[:, 0])
+            xmin = np.min(hand_cluster[:, 0])
+            xmax = np.max(hand_cluster[:, 0])
 
-        if np.all(hand_cluster[:, 2][0] == hand_cluster[:, 2]) or zmin == zmax:
-            hand_cluster[:, 2] = np.zeros((point_num))
-        else:
-            hand_cluster[:, 2] = np.asarray(list(map(lambda z: (z - zmean) / (zmax - zmin), hand_cluster[:, 2])))
+            ymean = np.mean(hand_cluster[:, 1])
+            ymin = np.min(hand_cluster[:, 1])
+            ymax = np.max(hand_cluster[:, 1])
+
+            zmean = np.mean(hand_cluster[:, 2])
+            zmin = np.min(hand_cluster[:, 2])
+            zmax = np.max(hand_cluster[:, 2])
+
+            # append back the doppler
+            # doppler array for this frame
+            doppler_array = np.zeros((point_num, 1))
+            for j in range(point_num):
+                doppler_array[j:, ] = doppler_dict[tuple(hand_cluster[j, :3])]
+            # min-max normalize the velocity
+            minMaxScaler = MinMaxScaler()
+            doppler_array = minMaxScaler.fit_transform(doppler_array)
+
+            hand_cluster = np.append(hand_cluster, doppler_array,
+                                     1)  # TODO this part needs validation, are the put-back dopplers correct?
+
+            # Do the Mean Normalization
+            # avoid division by zero, check if all the elements in a column are the same
+            if np.all(hand_cluster[:, 0][0] == hand_cluster[:, 0]) or xmin == xmax:
+                hand_cluster[:, 0] = np.zeros((point_num))
+            else:
+                hand_cluster[:, 0] = np.asarray(list(map(lambda x: (x - xmean) / (xmax - xmin), hand_cluster[:, 0])))
+
+            if np.all(hand_cluster[:, 1][0] == hand_cluster[:, 1]) or ymin == ymax:
+                hand_cluster[:, 1] = np.zeros((point_num))
+            else:
+                hand_cluster[:, 1] = np.asarray(list(map(lambda y: (y - ymean) / (ymax - ymin), hand_cluster[:, 1])))
+
+            if np.all(hand_cluster[:, 2][0] == hand_cluster[:, 2]) or zmin == zmax:
+                hand_cluster[:, 2] = np.zeros((point_num))
+            else:
+                hand_cluster[:, 2] = np.asarray(list(map(lambda z: (z - zmean) / (zmax - zmin), hand_cluster[:, 2])))
+
         # pad to 50
-
         hand_cluster_padded = np.pad(hand_cluster, ((0, num_padding - point_num), (0, 0)), 'constant',
                                  constant_values=0)
     else:
@@ -325,28 +362,43 @@ for i, radarFrame in enumerate(radar_data):
 
     # save the combined image
     new_im.save(os.path.join(mergedImg_path_intervaled, str(timestamp) + '_' + str(timestamp.as_integer_ratio()[0]) +
-                             '_' + str(timestamp.as_integer_ratio()[1]) + '_' + str(interval_index) +'.jpg'))
+                             '_' + str(timestamp.as_integer_ratio()[1]) + '_' + str(interval_index) + '.jpg'))
     plt.close('all')
 
 # process the last interval ##########################################################################
-intervaled_data = np.asarray(intervaled_data)
-if intervaled_data.shape[0] < sample_per_interval:
-    intervaled_data = np.concatenate(
-        (intervaled_data, np.zeros((sample_per_interval - intervaled_data.shape[0], num_padding * 4 + 3))))
-elif intervaled_data.shape[0] > sample_per_interval:
-    intervaled_data = intervaled_data[:sample_per_interval, :]
-intervaled_data_list.append(intervaled_data)
-if interval_index % 5 == 1:
-    label_array.append(1.0)  # for label A
-elif interval_index % 5 == 2:
-    label_array.append(4.0)  # for label D
-elif interval_index % 5 == 3:
-    label_array.append(12.0)  # for label L
-elif interval_index % 5 == 4:
-    label_array.append(13.0)  # for label M
-elif interval_index % 5 == 0:
-    label_array.append(16.0)  # for label P
-print('Label for the last interval is ' + str(label_array[len(label_array) - 1]))
+if len(intervaled_data_list) <= 100:
+    intervaled_data = np.asarray(intervaled_data)
+    if intervaled_data.shape[0] < sample_per_interval:
+        intervaled_data = np.concatenate(
+            (intervaled_data, np.zeros((sample_per_interval - intervaled_data.shape[0], num_padding * 4 + 3))))
+    elif intervaled_data.shape[0] > sample_per_interval:
+        intervaled_data = intervaled_data[:sample_per_interval, :]
+    intervaled_data_list.append(intervaled_data)
+
+    if num_write == 1:
+        if interval_index % (5 * num_write) == 1:
+            this_label = 1.0
+        elif interval_index % (5 * num_write) == 2:
+            this_label = 4.0  # for label D
+        elif interval_index % (5 * num_write) == 3:
+            this_label = 12.0  # for label L
+        elif interval_index % (5 * num_write) == 4:
+            this_label = 13.0  # for label M
+        elif interval_index % (5 * num_write) == 5:
+            this_label = 16.0  # for label P
+    elif num_write == 2:
+        if interval_index % (5 * num_write) == 1 or interval_index % (5 * num_write) == 2:
+            this_label = 1.0
+        elif interval_index % (5 * num_write) == 3 or interval_index % (5 * num_write) == 4:
+            this_label = 4.0  # for label D
+        elif interval_index % (5 * num_write) == 5 or interval_index % (5 * num_write) == 6:
+            this_label = 12.0  # for label L
+        elif interval_index % (5 * num_write) == 7 or interval_index % (5 * num_write) == 8:
+            this_label = 13.0  # for label M
+        elif interval_index % (5 * num_write) == 9 or interval_index % (5 * num_write) == 0:
+            this_label = 16.0  # for label P
+    label_array.append(this_label)  # for label A
+    print('Label for the last interval is ' + str(this_label))
 
 # start of post processing ##########################################################################
 
@@ -356,13 +408,15 @@ data_for_classifier_flattened = pd.DataFrame(data_for_classifier_flattened)
 intervaled_data_list = np.asarray(intervaled_data_list)
 label_array = np.asarray(label_array)
 # remove the timestamp for the classifier
+
 intervaled_data_ts_removed = []
-for i_data in intervaled_data_list:
-    intervaled_data_ts_removed.append(np.delete(np.delete(np.delete(i_data, 1, 1), 1, 1), 1, 1))
+for i, i_data in enumerate(intervaled_data_list):
+    intervaled_data_ts_removed.append(i_data[:, 3:])
 intervaled_data_ts_removed = np.asarray(intervaled_data_ts_removed)
 
+
 print('Saving csv and npy...')
-data_for_classifier_flattened.to_csv(os.path.join(out_path, 'flattened'))
+data_for_classifier_flattened.to_csv(os.path.join(out_path, 'flattened.csv'))
 np.save(os.path.join(out_path, 'intervaled'), intervaled_data_list)
 np.save(os.path.join(out_path, 'intervaled_ts_removed'), intervaled_data_ts_removed)
 np.save(os.path.join(out_path, 'label_array'), label_array)
