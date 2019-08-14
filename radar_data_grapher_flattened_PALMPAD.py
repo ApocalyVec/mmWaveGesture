@@ -51,16 +51,16 @@ from scipy.spatial import distance
 
 # IndexPen
 # ya 0 ######################################################
-# radarData_path = 'F:/indexPen/data/f_data_ya_0/f_data.p'
-# videoData_path = 'F:/indexPen/data/v_data_ya_0/cam2'
-# mergedImg_path = 'F:/indexPen/figures/ya_0'
-# out_path = 'F:/indexPen/csv/ya_0'
+radarData_path = 'F:/indexPen/data/f_data_ya_0/f_data.p'
+videoData_path = 'F:/indexPen/data/v_data_ya_0/cam2'
+mergedImg_path = 'F:/indexPen/figures/ya_0'
+out_path = 'F:/indexPen/csv/ya_0'
 
-# # ya 1 ######################################################
-# radarData_path = 'F:/indexPen/data/f_data_ya_1/f_data.p'
-# videoData_path = 'F:/indexPen/data/v_data_ya_1/cam2'
-# mergedImg_path = 'F:/indexPen/figures/ya_1'
-# out_path = 'F:/indexPen/csv/ya_1'
+# ya 1 ######################################################
+radarData_path = 'F:/indexPen/data/f_data_ya_1/f_data.p'
+videoData_path = 'F:/indexPen/data/v_data_ya_1/cam2'
+mergedImg_path = 'F:/indexPen/figures/ya_1'
+out_path = 'F:/indexPen/csv/ya_1'
 
 # # ya 2 ######################################################
 radarData_path = 'F:/indexPen/data/f_data_ya_2/f_data.p'
@@ -68,35 +68,35 @@ videoData_path = 'F:/indexPen/data/v_data_ya_2/cam2'
 mergedImg_path = 'F:/indexPen/figures/ya_2'
 out_path = 'F:/indexPen/csv/ya_2'
 
-# # ya 3 ######################################################
-# radarData_path = 'F:/indexPen/data/f_data_ya_3/f_data.p'
-# videoData_path = 'F:/indexPen/data/v_data_ya_3/cam2'
-# mergedImg_path = 'F:/indexPen/figures/ya_3'
-# out_path = 'F:/indexPen/csv/ya_3'
+# ya 3 ######################################################
+radarData_path = 'F:/indexPen/data/f_data_ya_3/f_data.p'
+videoData_path = 'F:/indexPen/data/v_data_ya_3/cam2'
+mergedImg_path = 'F:/indexPen/figures/ya_3'
+out_path = 'F:/indexPen/csv/ya_3'
 
-# # zl 0 ######################################################
-# radarData_path = 'F:/indexPen/data/f_data_zl_0/f_data.p'
-# videoData_path = 'F:/indexPen/data/v_data_zl_0/cam2'
-# mergedImg_path = 'F:/indexPen/figures/zl_0'
-# out_path = 'F:/indexPen/csv/zl_0'
+# zl 0 ######################################################
+radarData_path = 'F:/indexPen/data/f_data_zl_0/f_data.p'
+videoData_path = 'F:/indexPen/data/v_data_zl_0/cam2'
+mergedImg_path = 'F:/indexPen/figures/zl_0'
+out_path = 'F:/indexPen/csv/zl_0'
 
-# # zl 1 ######################################################
-# radarData_path = 'F:/indexPen/data/f_data_zl_1/f_data.p'
-# videoData_path = 'F:/indexPen/data/v_data_zl_1/cam2'
-# mergedImg_path = 'F:/indexPen/figures/zl_1'
-# out_path = 'F:/indexPen/csv/zl_1'
+# zl 1 ######################################################
+radarData_path = 'F:/indexPen/data/f_data_zl_1/f_data.p'
+videoData_path = 'F:/indexPen/data/v_data_zl_1/cam2'
+mergedImg_path = 'F:/indexPen/figures/zl_1'
+out_path = 'F:/indexPen/csv/zl_1'
 
-# # zl 2 BAD ######################################################
-# radarData_path = 'F:/indexPen/data/f_data_zl_2/f_data.p'
-# videoData_path = 'F:/indexPen/data/v_data_zl_2/cam2'
-# mergedImg_path = 'F:/indexPen/figures/zl_2'
-# out_path = 'F:/indexPen/csv/zl_2'
+# zl 2 BAD ######################################################
+radarData_path = 'F:/indexPen/data/f_data_zl_2/f_data.p'
+videoData_path = 'F:/indexPen/data/v_data_zl_2/cam2'
+mergedImg_path = 'F:/indexPen/figures/zl_2'
+out_path = 'F:/indexPen/csv/zl_2'
 
-# # zl 3 ######################################################
-# radarData_path = 'F:/indexPen/data/f_data_zl_3/f_data.p'
-# videoData_path = 'F:/indexPen/data/v_data_zl_3/cam2'
-# mergedImg_path = 'F:/indexPen/figures/zl_3'
-# out_path = 'F:/indexPen/csv/zl_3'
+# zl 3 ######################################################
+radarData_path = 'F:/indexPen/data/f_data_zl_3/f_data.p'
+videoData_path = 'F:/indexPen/data/v_data_zl_3/cam2'
+mergedImg_path = 'F:/indexPen/figures/zl_3'
+out_path = 'F:/indexPen/csv/zl_3'
 
 # # zy 0 ######################################################
 # radarData_path = 'F:/indexPen/data/f_data_zy_0/f_data.p'
@@ -159,6 +159,9 @@ os.mkdir(mergedImg_path)
 intervaled_data_list = []
 intervaled_data = []
 
+intervaled_3D_data_list = []
+intervaled_3D_data = []
+
 interval_sec = 5
 sample_per_sec = 15
 sample_per_interval = interval_sec * sample_per_sec
@@ -189,7 +192,14 @@ for i, radarFrame in enumerate(radar_data):
         elif intervaled_data.shape[0] > sample_per_interval:
             intervaled_data = intervaled_data[:sample_per_interval, :]
 
+        if len(intervaled_3D_data) < 75:
+            while(len(intervaled_3D_data) < 75):
+                intervaled_3D_data.append(np.zeros((1, 20, 20, 20)))
+        elif len(intervaled_3D_data) > 75:
+            intervaled_3D_data = intervaled_3D_data[:75]
+
         intervaled_data_list.append(intervaled_data)
+        intervaled_3D_data_list.append(np.asarray(intervaled_3D_data))
 
         # decide the label
         if num_write == 1:
@@ -220,6 +230,7 @@ for i, radarFrame in enumerate(radar_data):
 
         # reset the interval data
         intervaled_data = []
+        intervaled_3d_data = []
         starting_timestamp = starting_timestamp + 5.0
         interval_index = interval_index + 1
 
@@ -394,9 +405,18 @@ for i, radarFrame in enumerate(radar_data):
     ax3.scatter(hand_cluster_padded[:, 0], hand_cluster_padded[:, 1], hand_cluster_padded[:, 2], c=hand_cluster_padded[:, 3], marker='o')
 
     # create 3D feature space #############################
-    
+    hand_feature_space = np.zeros((20, 20, 20))
+    for row in hand_cluster:
+        feature_x = int(((row[0] + 1) * 100)/10)
+        feature_y = int(((row[1] + 1) * 100)/10)
+        feature_z = int(((row[2] + 1) * 100)/10)
+        feature_v = row[3]
 
+        hand_feature_space[feature_x, feature_y, feature_z] += feature_v
 
+    # expand dimension as single channel
+    hand_feature_space = np.expand_dims(hand_feature_space, axis=0)
+    intervaled_3D_data.append(hand_feature_space)
 
     #############################
     # Combine the three images
@@ -451,7 +471,15 @@ if len(intervaled_data_list) <= 100:
             (intervaled_data, np.zeros((sample_per_interval - intervaled_data.shape[0], num_padding * 4 + 3))))
     elif intervaled_data.shape[0] > sample_per_interval:
         intervaled_data = intervaled_data[:sample_per_interval, :]
+
+    if len(intervaled_3D_data) < 75:
+        while (len(intervaled_3D_data) < 75):
+            intervaled_3D_data.append(np.zeros(20, 20))
+    elif len(intervaled_3D_data) > 75:
+        intervaled_3D_data = intervaled_3D_data[:75]
+
     intervaled_data_list.append(intervaled_data)
+    intervaled_3D_data_list.append(intervaled_3D_data)
 
     if num_write == 1:
         if interval_index % (5 * num_write) == 1:
@@ -492,12 +520,14 @@ for i, i_data in enumerate(intervaled_data_list):
     intervaled_data_ts_removed.append(i_data[:, 3:])
 intervaled_data_ts_removed = np.asarray(intervaled_data_ts_removed)
 
-
+intervaled_3D_data_array = np.asarray(intervaled_3D_data_list)
 print('Saving csv and npy...')
-data_for_classifier_flattened.to_csv(os.path.join(out_path, 'flattened.csv'))
-np.save(os.path.join(out_path, 'intervaled'), intervaled_data_list)
-np.save(os.path.join(out_path, 'intervaled_ts_removed'), intervaled_data_ts_removed)
-np.save(os.path.join(out_path, 'label_array'), label_array)
+# data_for_classifier_flattened.to_csv(os.path.join(out_path, 'flattened.csv'))
+# np.save(os.path.join(out_path, 'intervaled'), intervaled_data_list)
+
+# np.save(os.path.join(out_path, 'intervaled_ts_removed'), intervaled_data_ts_removed)
+# np.save(os.path.join(out_path, 'label_array'), label_array)
+# np.save(os.path.join(out_path, 'intervaled_3D'), intervaled_3D_data_array)
 
 print('Done!')
 
