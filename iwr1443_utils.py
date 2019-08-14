@@ -193,7 +193,7 @@ def parseConfigFile(configFileName):
         if "profileCfg" in splitWords[0]:
             startFreq = int(splitWords[2])
             idleTime = int(splitWords[3])
-            rampEndTime = int(splitWords[5]);
+            rampEndTime = float(splitWords[5]);
             freqSlopeConst = int(splitWords[8]);
             numAdcSamples = int(splitWords[10]);
             numAdcSamplesRoundTo2 = 1;
@@ -210,7 +210,7 @@ def parseConfigFile(configFileName):
             chirpEndIdx = int(splitWords[2]);
             numLoops = int(splitWords[3]);
             numFrames = int(splitWords[4]);
-            framePeriodicity = int(splitWords[5]);
+            framePeriodicity = float(splitWords[5]);
 
     # Combine the read data to obtain the configuration parameters
     numChirpsPerFrame = (chirpEndIdx - chirpStartIdx + 1) * numLoops

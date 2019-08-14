@@ -91,8 +91,8 @@ def update():
         z = detObj["z"]
         doppler = detObj["doppler"]  # doppler values for the detected points in m/s
 
-    s_original.setData(x, y)
-    s_processed.setData(z, doppler)
+    draw_x_y.setData(x, y)
+    draw_z_v.setData(z, doppler)
 
     QtGui.QApplication.processEvents()
 
@@ -118,20 +118,20 @@ app = QtGui.QApplication([])
 # Set the plot
 pg.setConfigOption('background', 'w')
 win = pg.GraphicsWindow(title="2D scatter plot")
-p_original = win.addPlot()
-p_original.setXRange(-0.5, 0.5)
-p_original.setYRange(0, 1.5)
-p_original.setLabel('left', text='Y position (m)')
-p_original.setLabel('bottom', text='X position (m)')
-s_original = p_original.plot([], [], pen=None, symbol='o')
+fig_z_y = win.addPlot()
+fig_z_y.setXRange(-0.5, 0.5)
+fig_z_y.setYRange(0, 1.5)
+fig_z_y.setLabel('left', text='Y position (m)')
+fig_z_y.setLabel('bottom', text='X position (m)')
+draw_x_y = fig_z_y.plot([], [], pen=None, symbol='o')
 
 # set the processed plot
-p_processed = win.addPlot()
-p_processed.setXRange(-1, 1)
-p_processed.setYRange(-1, 1)
-p_processed.setLabel('left', text='Z position (m)')
-p_processed.setLabel('bottom', text='Doppler (m/s)')
-s_processed = p_processed.plot([], [], pen=None, symbol='o')
+fig_z_v = win.addPlot()
+fig_z_v.setXRange(-1, 1)
+fig_z_v.setYRange(-1, 1)
+fig_z_v.setLabel('left', text='Z position (m)')
+fig_z_v.setLabel('bottom', text='Doppler (m/s)')
+draw_z_v = fig_z_v.plot([], [], pen=None, symbol='o')
 
 # Main loop
 detObj = {}

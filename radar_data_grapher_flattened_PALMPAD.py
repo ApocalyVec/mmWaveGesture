@@ -12,45 +12,119 @@ from sklearn.cluster import DBSCAN
 from sklearn.preprocessing import MinMaxScaler
 
 from scipy.spatial import distance
-
-# ya 0 ######################################################
-radarData_path = 'F:/palmpad/data/f_data_ya_0/f_data.p'
-videoData_path = 'F:/palmpad/data/v_data_ya_0/cam2'
-mergedImg_path = 'F:/palmpad/figures/ya_0'
-out_path = 'F:/palmpad/csv/ya_0'
-
-# ya 1 ######################################################
-radarData_path = 'F:/palmpad/data/f_data_ya_1/f_data.p'
-videoData_path = 'F:/palmpad/data/v_data_ya_1/cam2'
-mergedImg_path = 'F:/palmpad/figures/ya_1'
-out_path = 'F:/palmpad/csv/ya_1'
-
-# zl 0 ######################################################
-radarData_path = 'F:/palmpad/data/f_data_zl_0/f_data.p'
-videoData_path = 'F:/palmpad/data/v_data_zl_0/cam2'
-mergedImg_path = 'F:/palmpad/figures/zl_0'
-out_path = 'F:/palmpad/csv/zl_0'
-
-# zl 1 ######################################################
-radarData_path = 'F:/palmpad/data/f_data_zl_1/f_data.p'
-videoData_path = 'F:/palmpad/data/v_data_zl_1/cam2'
-mergedImg_path = 'F:/palmpad/figures/zl_1'
-out_path = 'F:/palmpad/csv/zl_1'
-
-# zy 0 ######################################################
-radarData_path = 'F:/palmpad/data/f_data_zy_0/f_data.p'
-videoData_path = 'F:/palmpad/data/v_data_zy_0/cam2'
-mergedImg_path = 'F:/palmpad/figures/zy_0'
-out_path = 'F:/palmpad/csv/zy_0'
+# Palmpad
+# # ya 0 ######################################################
+# radarData_path = 'F:/palmpad/data/f_data_ya_0/f_data.p'
+# videoData_path = 'F:/palmpad/data/v_data_ya_0/cam2'
+# mergedImg_path = 'F:/palmpad/figures/ya_0'
+# out_path = 'F:/palmpad/csv/ya_0'
 #
-# zy 1 ######################################################
-radarData_path = 'F:/palmpad/data/f_data_zy_1/f_data.p'
-videoData_path = 'F:/palmpad/data/v_data_zy_1/cam2'
-mergedImg_path = 'F:/palmpad/figures/zy_1'
-out_path = 'F:/palmpad/csv/zy_1'
+# # ya 1 ######################################################
+# radarData_path = 'F:/palmpad/data/f_data_ya_1/f_data.p'
+# videoData_path = 'F:/palmpad/data/v_data_ya_1/cam2'
+# mergedImg_path = 'F:/palmpad/figures/ya_1'
+# out_path = 'F:/palmpad/csv/ya_1'
+#
+# # zl 0 ######################################################
+# radarData_path = 'F:/palmpad/data/f_data_zl_0/f_data.p'
+# videoData_path = 'F:/palmpad/data/v_data_zl_0/cam2'
+# mergedImg_path = 'F:/palmpad/figures/zl_0'
+# out_path = 'F:/palmpad/csv/zl_0'
+#
+# # zl 1 ######################################################
+# radarData_path = 'F:/palmpad/data/f_data_zl_1/f_data.p'
+# videoData_path = 'F:/palmpad/data/v_data_zl_1/cam2'
+# mergedImg_path = 'F:/palmpad/figures/zl_1'
+# out_path = 'F:/palmpad/csv/zl_1'
+#
+# # zy 0 ######################################################
+# radarData_path = 'F:/palmpad/data/f_data_zy_0/f_data.p'
+# videoData_path = 'F:/palmpad/data/v_data_zy_0/cam2'
+# mergedImg_path = 'F:/palmpad/figures/zy_0'
+# out_path = 'F:/palmpad/csv/zy_0'
+# #
+# # zy 1 ######################################################
+# radarData_path = 'F:/palmpad/data/f_data_zy_1/f_data.p'
+# videoData_path = 'F:/palmpad/data/v_data_zy_1/cam2'
+# mergedImg_path = 'F:/palmpad/figures/zy_1'
+# out_path = 'F:/palmpad/csv/zy_1'
+
+# IndexPen
+# ya 0 ######################################################
+# radarData_path = 'F:/indexPen/data/f_data_ya_0/f_data.p'
+# videoData_path = 'F:/indexPen/data/v_data_ya_0/cam2'
+# mergedImg_path = 'F:/indexPen/figures/ya_0'
+# out_path = 'F:/indexPen/csv/ya_0'
+
+# # ya 1 ######################################################
+# radarData_path = 'F:/indexPen/data/f_data_ya_1/f_data.p'
+# videoData_path = 'F:/indexPen/data/v_data_ya_1/cam2'
+# mergedImg_path = 'F:/indexPen/figures/ya_1'
+# out_path = 'F:/indexPen/csv/ya_1'
+
+# # ya 2 ######################################################
+radarData_path = 'F:/indexPen/data/f_data_ya_2/f_data.p'
+videoData_path = 'F:/indexPen/data/v_data_ya_2/cam2'
+mergedImg_path = 'F:/indexPen/figures/ya_2'
+out_path = 'F:/indexPen/csv/ya_2'
+
+# # ya 3 ######################################################
+# radarData_path = 'F:/indexPen/data/f_data_ya_3/f_data.p'
+# videoData_path = 'F:/indexPen/data/v_data_ya_3/cam2'
+# mergedImg_path = 'F:/indexPen/figures/ya_3'
+# out_path = 'F:/indexPen/csv/ya_3'
+
+# # zl 0 ######################################################
+# radarData_path = 'F:/indexPen/data/f_data_zl_0/f_data.p'
+# videoData_path = 'F:/indexPen/data/v_data_zl_0/cam2'
+# mergedImg_path = 'F:/indexPen/figures/zl_0'
+# out_path = 'F:/indexPen/csv/zl_0'
+
+# # zl 1 ######################################################
+# radarData_path = 'F:/indexPen/data/f_data_zl_1/f_data.p'
+# videoData_path = 'F:/indexPen/data/v_data_zl_1/cam2'
+# mergedImg_path = 'F:/indexPen/figures/zl_1'
+# out_path = 'F:/indexPen/csv/zl_1'
+
+# # zl 2 BAD ######################################################
+# radarData_path = 'F:/indexPen/data/f_data_zl_2/f_data.p'
+# videoData_path = 'F:/indexPen/data/v_data_zl_2/cam2'
+# mergedImg_path = 'F:/indexPen/figures/zl_2'
+# out_path = 'F:/indexPen/csv/zl_2'
+
+# # zl 3 ######################################################
+# radarData_path = 'F:/indexPen/data/f_data_zl_3/f_data.p'
+# videoData_path = 'F:/indexPen/data/v_data_zl_3/cam2'
+# mergedImg_path = 'F:/indexPen/figures/zl_3'
+# out_path = 'F:/indexPen/csv/zl_3'
+
+# # zy 0 ######################################################
+# radarData_path = 'F:/indexPen/data/f_data_zy_0/f_data.p'
+# videoData_path = 'F:/indexPen/data/v_data_zy_0/cam2'
+# mergedImg_path = 'F:/indexPen/figures/zy_0'
+# out_path = 'F:/indexPen/csv/zy_0'
+
+# # zy 1 ######################################################
+# radarData_path = 'F:/indexPen/data/f_data_zy_1/f_data.p'
+# videoData_path = 'F:/indexPen/data/v_data_zy_1/cam2'
+# mergedImg_path = 'F:/indexPen/figures/zy_1'
+# out_path = 'F:/indexPen/csv/zy_1'
+
+# # zy 2 ######################################################
+# radarData_path = 'F:/indexPen/data/f_data_zy_2/f_data.p'
+# videoData_path = 'F:/indexPen/data/v_data_zy_2/cam2'
+# mergedImg_path = 'F:/indexPen/figures/zy_2'
+# out_path = 'F:/indexPen/csv/zy_2'
+
+# # zy 3 ######################################################
+# radarData_path = 'F:/indexPen/data/f_data_zy_3/f_data.p'
+# videoData_path = 'F:/indexPen/data/v_data_zy_3/cam2'
+# mergedImg_path = 'F:/indexPen/figures/zy_3'
+# out_path = 'F:/indexPen/csv/zy_3'
+
 
 # utility directory to save the pyplots
-radar_3dscatter_path = 'F:/palmpad/figures/utils/radar_3dscatter'
+radar_3dscatter_path = 'F:/indexPen/figures/utils/radar_3dscatter'
 
 radar_data = list(pickle.load(open(radarData_path, 'rb')).items())
 radar_data.sort(key=lambda x: x[0])  # sort by timestamp
@@ -115,8 +189,6 @@ for i, radarFrame in enumerate(radar_data):
         elif intervaled_data.shape[0] > sample_per_interval:
             intervaled_data = intervaled_data[:sample_per_interval, :]
 
-        # append the label column
-        # intervaled_data = np.concatenate((label_array, intervaled_data), axis=1)
         intervaled_data_list.append(intervaled_data)
 
         # decide the label
@@ -143,7 +215,8 @@ for i, radarFrame in enumerate(radar_data):
             elif interval_index % (5 * num_write) == 9 or interval_index % (5 * num_write) == 0:
                 this_label = 16.0  # for label P
         label_array.append(this_label)  # for label A
-        print('Label for the last interval is ' + str(this_label))
+        print('Label for the last interval is ' + str(this_label) + ' Num Samples: ' + str(len(intervaled_data)))
+        print('')
 
         # reset the interval data
         intervaled_data = []
@@ -319,6 +392,11 @@ for i, radarFrame in enumerate(radar_data):
 
 
     ax3.scatter(hand_cluster_padded[:, 0], hand_cluster_padded[:, 1], hand_cluster_padded[:, 2], c=hand_cluster_padded[:, 3], marker='o')
+
+    # create 3D feature space #############################
+    
+
+
 
     #############################
     # Combine the three images
