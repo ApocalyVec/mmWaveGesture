@@ -42,7 +42,9 @@ for input_dir in input_dir_list:
 # MinMax normalize X
 # mmScalar = MinMaxScaler()
 # X = mmScalar.fit_transform(X).toarrays()
-
+Xmin = X.min()
+Xmax = Y.max()
+X = (X - Xmin)/(Xmax - Xmin)
 # Onehot encode Y ############################################
 onehotencoder = OneHotEncoder(categories='auto')
 Y = onehotencoder.fit_transform(np.expand_dims(Y, axis=1)).toarray()
