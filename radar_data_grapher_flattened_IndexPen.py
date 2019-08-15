@@ -184,6 +184,9 @@ for i, radarFrame in enumerate(radar_data):
 
     # calculate the interval
     if (timestamp - starting_timestamp) >= 5.0:
+        num_intervaled_samples = len(intervaled_data)
+        if num_intervaled_samples < sample_per_interval / 2:
+            raise Exception('Not Enough Data Points, killed')
         # pad to sample_per_interval
         intervaled_data = np.asarray(intervaled_data)
         if intervaled_data.shape[0] < sample_per_interval:
@@ -234,7 +237,6 @@ for i, radarFrame in enumerate(radar_data):
         os.mkdir(mergedImg_path_intervaled)
 
     print('Processing ' + str(i + 1) + ' of ' + str(len(radar_data)) + ', interval = ' + str(interval_index))
-
 
     closest_video_timestamp = min(videoData_timestamps,
                                   key=lambda x: abs(x - timestamp))
@@ -345,6 +347,10 @@ for i, radarFrame in enumerate(radar_data):
             doppler_array = np.zeros((point_num, 1))
             for j in range(point_num):
                 doppler_array[j:, ] = doppler_dict[tuple(hand_cluster[j, :3])]
+
+            hand_minMaxScaler = MinMaxScaler()
+            hand_minMaxScaler.fit_transform(hand_cluster)
+
             # min-max normalize the velocity
             minMaxScaler = MinMaxScaler()
             doppler_array = minMaxScaler.fit_transform(doppler_array)
@@ -403,7 +409,11 @@ for i, radarFrame in enumerate(radar_data):
         feature_x = int(((row[0] + 1) * 100)/4)
         feature_y = int(((row[1] + 1) * 100)/4)
         feature_z = int(((row[2] + 1) * 100)/4)
+        # feature_x = row[0]
+        # feature_y = row[1]
+        # feature_z = row[2]
         feature_v = row[3]
+
 
         intervaled_3D_data[feature_x, feature_y, feature_z] += feature_v
 

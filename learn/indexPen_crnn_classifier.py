@@ -16,10 +16,10 @@ input_dir_list = [
     # 'F:/indexPen/csv/zl_1',
     # 'F:/indexPen/csv/zl_3',
     #
-    'F:/indexPen/csv/zy_0',
-    'F:/indexPen/csv/zy_1',
-    'F:/indexPen/csv/zy_2',
-    'F:/indexPen/csv/zy_3'
+    # 'F:/indexPen/csv/zy_0',
+    # 'F:/indexPen/csv/zy_1',
+    # 'F:/indexPen/csv/zy_2',
+    # 'F:/indexPen/csv/zy_3'
 ]
 
 X = None

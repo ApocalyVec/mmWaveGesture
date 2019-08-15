@@ -254,3 +254,14 @@ def label(folder_path, data_file):
                 data.loc[timestamp].iat[0] = float(gesture)
                 break
     return (data, not_found)
+
+# volumn.shape = (50, 50, 50)
+def circularHeating(x, y, z, heat, radius, volume):
+    """
+    make sure volume is a square
+    :param x: scale -1 to 1
+    :param y:
+    :param z:
+    :param heat:
+    :param volume:
+    """

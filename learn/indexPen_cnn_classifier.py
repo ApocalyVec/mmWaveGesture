@@ -11,11 +11,11 @@ input_dir_list = [
     # 'F:/indexPen/csv/ya_0',
     # 'F:/indexPen/csv/ya_1',
     # 'F:/indexPen/csv/ya_3',
-    #
+
     # 'F:/indexPen/csv/zl_0',
     # 'F:/indexPen/csv/zl_1',
     # 'F:/indexPen/csv/zl_3',
-    #
+
     'F:/indexPen/csv/zy_0',
     'F:/indexPen/csv/zy_1',
     'F:/indexPen/csv/zy_2',
