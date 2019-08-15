@@ -255,8 +255,8 @@ def label(folder_path, data_file):
                 break
     return (data, not_found)
 
-# volumn.shape = (50, 50, 50)
-def circularHeating(x, y, z, heat, radius, volume):
+# volumn.shape = (5, 5, 5)
+def addPointToVolumn(x, y, z, v, radius, volume):
     """
     make sure volume is a square
     :param x: scale -1 to 1
@@ -265,3 +265,4 @@ def circularHeating(x, y, z, heat, radius, volume):
     :param heat:
     :param volume:
     """
+    pass

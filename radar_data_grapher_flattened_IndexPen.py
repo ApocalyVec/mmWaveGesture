@@ -226,7 +226,7 @@ for i, radarFrame in enumerate(radar_data):
 
         # reset the interval data
         intervaled_data = []
-        intervaled_3D_data = np.zeros((50, 50, 50))
+        intervaled_3D_data = np.zeros((5, 5, 5))
 
         starting_timestamp = starting_timestamp + 5.0
         interval_index = interval_index + 1
@@ -326,83 +326,30 @@ for i, radarFrame in enumerate(radar_data):
         # if the cluster is outside the 20*20*20 cm bounding box
         distance_from_center = distance.euclidean((0.0, 0.0, 0.0), np.array(
         [np.mean(hand_cluster[:, 0]), np.mean(hand_cluster[:, 1]), np.mean(hand_cluster[:, 2])]))
-        if distance_from_center > distance.euclidean((0.0, 0.0, 0.0), bbox):
+
+        if distance_from_center > distance.euclidean((0.0, 0.0, 0.0), bbox): # if the core of the cluster is too far away from the center
             hand_cluster = np.zeros((hand_cluster.shape[0], hand_cluster.shape[1] + 1))
         else:
-
-            xmean = np.mean(hand_cluster[:, 0])
-            xmin = np.min(hand_cluster[:, 0])
-            xmax = np.max(hand_cluster[:, 0])
-
-            ymean = np.mean(hand_cluster[:, 1])
-            ymin = np.min(hand_cluster[:, 1])
-            ymax = np.max(hand_cluster[:, 1])
-
-            zmean = np.mean(hand_cluster[:, 2])
-            zmin = np.min(hand_cluster[:, 2])
-            zmax = np.max(hand_cluster[:, 2])
-
-            # append back the doppler
-            # doppler array for this frame
             doppler_array = np.zeros((point_num, 1))
             for j in range(point_num):
                 doppler_array[j:, ] = doppler_dict[tuple(hand_cluster[j, :3])]
 
+            # append back the doppler
+            hand_cluster = np.append(hand_cluster, doppler_array, 1)
+            # perform column-wise min-max normalization
+
             hand_minMaxScaler = MinMaxScaler()
             hand_minMaxScaler.fit_transform(hand_cluster)
 
-            # min-max normalize the velocity
-            minMaxScaler = MinMaxScaler()
-            doppler_array = minMaxScaler.fit_transform(doppler_array)
-
-            hand_cluster = np.append(hand_cluster, doppler_array,
-                                     1)  # TODO this part needs validation, are the put-back dopplers correct?
-
-            # Do the Mean Normalization
-            # avoid division by zero, check if all the elements in a column are the same
-            if np.all(hand_cluster[:, 0][0] == hand_cluster[:, 0]) or xmin == xmax:
-                hand_cluster[:, 0] = np.zeros((point_num))
-            else:
-                hand_cluster[:, 0] = np.asarray(list(map(lambda x: (x - xmean) / (xmax - xmin), hand_cluster[:, 0])))
-
-            if np.all(hand_cluster[:, 1][0] == hand_cluster[:, 1]) or ymin == ymax:
-                hand_cluster[:, 1] = np.zeros((point_num))
-            else:
-                hand_cluster[:, 1] = np.asarray(list(map(lambda y: (y - ymean) / (ymax - ymin), hand_cluster[:, 1])))
-
-            if np.all(hand_cluster[:, 2][0] == hand_cluster[:, 2]) or zmin == zmax:
-                hand_cluster[:, 2] = np.zeros((point_num))
-            else:
-                hand_cluster[:, 2] = np.asarray(list(map(lambda z: (z - zmean) / (zmax - zmin), hand_cluster[:, 2])))
-
-        # pad to 50
-        hand_cluster_padded = np.pad(hand_cluster, ((0, num_padding - point_num), (0, 0)), 'constant',
-                                 constant_values=0)
-    else:
-        hand_cluster_padded = np.zeros((num_padding, 4))
-
-    # flatten hand_cluster and add timestamp information
-    hand_cluster_padded_flattened = hand_cluster_padded.reshape(( -1))
-    hand_cluster_padded_flattened = np.insert(hand_cluster_padded_flattened, 0, timestamp.as_integer_ratio()[1])
-    hand_cluster_padded_flattened = np.insert(hand_cluster_padded_flattened, 0, timestamp.as_integer_ratio()[0])
-    hand_cluster_padded_flattened = np.insert(hand_cluster_padded_flattened, 0, timestamp)
-
-    data_for_classifier[i] = hand_cluster_padded
-    data_for_classifier_flattened[i] = hand_cluster_padded_flattened
-    intervaled_data.append(hand_cluster_padded_flattened)
-
     # plot the normalized closest cluster
-    ax3 = plt.subplot(2, 2, 3, projection='3d')
-    ax3.set_xlim((-1.0, 1.0))
-    ax3.set_ylim((-1.0, 1.0))
-    ax3.set_zlim((-1.0, 1.0))
-    ax3.set_xlabel('X', fontsize=10)
-    ax3.set_ylabel('Y', fontsize=10)
-    ax3.set_zlabel('Z', fontsize=10)
-    ax3.set_title('CLosest Cluster', fontsize=10)
-
-
-    ax3.scatter(hand_cluster_padded[:, 0], hand_cluster_padded[:, 1], hand_cluster_padded[:, 2], c=hand_cluster_padded[:, 3], marker='o')
+    # ax3 = plt.subplot(2, 2, 3, projection='3d')
+    # ax3.set_xlim((-1.0, 1.0))
+    # ax3.set_ylim((-1.0, 1.0))
+    # ax3.set_zlim((-1.0, 1.0))
+    # ax3.set_xlabel('X', fontsize=10)
+    # ax3.set_ylabel('Y', fontsize=10)
+    # ax3.set_zlabel('Z', fontsize=10)
+    # ax3.set_title('CLosest Cluster', fontsize=10)
 
     # create 3D feature space #############################
     for row in hand_cluster:
@@ -413,7 +360,6 @@ for i, radarFrame in enumerate(radar_data):
         # feature_y = row[1]
         # feature_z = row[2]
         feature_v = row[3]
-
 
         intervaled_3D_data[feature_x, feature_y, feature_z] += feature_v
 
