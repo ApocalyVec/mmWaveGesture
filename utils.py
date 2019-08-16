@@ -1,3 +1,4 @@
+import random
 from itertools import product
 
 import numpy as np
@@ -17,6 +18,8 @@ from scipy.spatial import distance
 import pandas as pd
 
 from sklearn.preprocessing import MinMaxScaler
+
+from transformation import translate
 
 
 def estimate_coef(x, y):
@@ -58,11 +61,12 @@ def distance_to_origin(x, y):
     #     rtn = rtn + math.pow(value, 2)
     # return math.sqrt(rtn)
 
-def generate_single_plot(plot_save_path, mergedImg_path, font, closest_video_img, closest_video_timestamp, xyz, n_clusters_, n_noise_, timestamp, cluster):
 
+def generate_single_plot(plot_save_path, mergedImg_path, font, closest_video_img, closest_video_timestamp, xyz,
+                         n_clusters_, n_noise_, timestamp, cluster):
     white_color = 'rgb(255, 255, 255)'
 
-    cluster_flattened = cluster.reshape(( -1))
+    cluster_flattened = cluster.reshape((-1))
     cluster_flattened = np.insert(cluster_flattened, 0, timestamp)
     cluster_flattened = cluster_flattened.reshape(1, -1)
 
@@ -123,8 +127,10 @@ def generate_single_plot(plot_save_path, mergedImg_path, font, closest_video_img
 
     return cluster_flattened
 
+
 # this function returns the flattened version of radar_data with timestamp information
-def generate_plot(radar_data, videoData_timestamps, videoData_path, DBSCAN_esp, DBSCAN_minSamples, num_padding, font, radar_3dscatter_path, mergedImg_path):
+def generate_plot(radar_data, videoData_timestamps, videoData_path, DBSCAN_esp, DBSCAN_minSamples, num_padding, font,
+                  radar_3dscatter_path, mergedImg_path):
     data_for_classifier_flattened = np.zeros((len(radar_data), 1, 4 * num_padding + 1))
     for i, radarFrame in enumerate(radar_data):
 
@@ -231,9 +237,11 @@ def generate_plot(radar_data, videoData_timestamps, videoData_path, DBSCAN_esp, 
         else:
             hand_cluster_padded = np.zeros((num_padding, 4))
 
-        data_for_classifier_flattened[i] = generate_single_plot(radar_3dscatter_path, mergedImg_path, font, closest_video_img, closest_video_timestamp, xyz,
-            n_clusters_, n_noise_, timestamp, hand_cluster_padded)
+        data_for_classifier_flattened[i] = generate_single_plot(radar_3dscatter_path, mergedImg_path, font,
+                                                                closest_video_img, closest_video_timestamp, xyz,
+                                                                n_clusters_, n_noise_, timestamp, hand_cluster_padded)
     return data_for_classifier_flattened
+
 
 def label(folder_path, data_file):
     img_folder = os.listdir(folder_path)
@@ -242,7 +250,8 @@ def label(folder_path, data_file):
         if not gesture == '.DS_Store':
             gesture_timestamp[gesture[0:1]] = os.listdir(os.path.join(folder_path, gesture))
             gesture_timestamp[gesture[0:1]].remove('.DS_Store')
-            gesture_timestamp[gesture[0:1]] = list(map(lambda x: float(x.strip('.jpg')), gesture_timestamp[gesture[0:1]]))
+            gesture_timestamp[gesture[0:1]] = list(
+                map(lambda x: float(x.strip('.jpg')), gesture_timestamp[gesture[0:1]]))
 
     data = pd.read_csv(data_file)
 
@@ -256,7 +265,7 @@ def label(folder_path, data_file):
             if timestamp not in timestamp_set:
                 not_found.append(timestamp)
                 print(str(timestamp) + ' , which is in folder ' + str(gesture) + ' not found in csv file')
-                #raise ValueError('found a timestamp that is not in the given csv file!')
+                # raise ValueError('found a timestamp that is not in the given csv file!')
 
     for timestamp in range(len(data)):
         print('labeling ' + str(timestamp) + ' of ' + str(len(data)))
@@ -265,6 +274,7 @@ def label(folder_path, data_file):
                 data.loc[timestamp].iat[0] = float(gesture)
                 break
     return (data, not_found)
+
 
 # volumn.shape = (5, 5, 5)
 def snapPointsToVolume(points, volume_shape, radius=1, decay=0.8):
@@ -289,10 +299,12 @@ def snapPointsToVolume(points, volume_shape, radius=1, decay=0.8):
         for p in points:
             if xmin <= p[0] <= xmax and ymin <= p[1] <= ymax and zmin <= p[2] <= zmax:
                 points_filtered.append(p)
+        if len(points_filtered) == 0:
+            return volume
         points_filtered = np.asarray(points_filtered)
 
         scaler = MinMaxScaler().fit([[xmin, ymin, zmin],
-                                    [xmax, ymax, zmax]])
+                                     [xmax, ymax, zmax]])
         points_filtered[:, :3] = scaler.transform(points_filtered[:, :3])
 
         size = volume_shape[0]  # the length of thesquare side
@@ -321,7 +333,8 @@ def snapPointsToVolume(points, volume_shape, radius=1, decay=0.8):
     return volume
 
 
-def radar_data_grapher_volumned(paths, isplot=False):
+def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentation=None,
+                                seeds=np.random.normal(0, 0.02, 5000), out_name=''):
     # utility directory to save the pyplots
     radarData_path, videoData_path, mergedImg_path, out_path = paths
 
@@ -368,6 +381,10 @@ def radar_data_grapher_volumned(paths, isplot=False):
     sample_per_sec = 20
     sample_per_interval = interval_sec * sample_per_sec
 
+    if augmentation:
+        print('Use augmentation: ' + augmentation)
+    else:
+        print('No augmentation applied')
     print('Label Cheat-sheet:')
     print('1 for A')
     print('4 for D')
@@ -459,98 +476,120 @@ def radar_data_grapher_volumned(paths, isplot=False):
             # plot the detected points
             ax1.scatter(fData['x'], fData['y'], fData['z'], c=fData['doppler'], marker='o')
 
-        # Do DBSCAN cluster ###############
-        # Do cluster ###############
-        # map the points to their doppler value, this is for retrieving the doppler value after clustering
         data = np.asarray([fData['x'], fData['y'], fData['z'], fData['doppler']]).transpose()
-        doppler_dict = {}
-        for point in data:
-            doppler_dict[tuple(point[:3])] = point[3:]
-        # get rid of the doppler for clustering TODO should we consider the doppler in clustering?
-        data = data[:, :3]
+        # Do DBSCAN cluster ###########################################
+        # map the points to their doppler value, this is for retrieving the doppler value after clustering
+        if isCluster:
+            doppler_dict = {}
+            for point in data:
+                doppler_dict[tuple(point[:3])] = point[3:]
+            # get rid of the doppler for clustering TODO should we consider the doppler in clustering?
+            data = data[:, :3]
 
-        db = DBSCAN(eps=DBSCAN_esp, min_samples=DBSCAN_minSamples).fit(data)
-        core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
-        core_samples_mask[db.core_sample_indices_] = True
-        labels = db.labels_
-        # Number of clusters in labels, ignoring noise if present.
-        n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-        n_noise_ = list(labels).count(-1)
+            db = DBSCAN(eps=DBSCAN_esp, min_samples=DBSCAN_minSamples).fit(data)
+            core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+            core_samples_mask[db.core_sample_indices_] = True
+            labels = db.labels_
+            # Number of clusters in labels, ignoring noise if present.
+            n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+            n_noise_ = list(labels).count(-1)
 
-        if isplot:
-            ax2 = plt.subplot(2, 2, 2, projection='3d')
-            ax2.set_xlim((-0.3, 0.3))
-            ax2.set_ylim((-0.3, 0.3))
-            ax2.set_zlim((-0.3, 0.3))
-            ax2.set_xlabel('X', fontsize=10)
-            ax2.set_ylabel('Y', fontsize=10)
-            ax2.set_zlabel('Z', fontsize=10)
-            ax2.set_title('Clustered Points', fontsize=10)
-
-        unique_labels = set(labels)
-        colors = [plt.cm.Spectral(each)
-                  for each in np.linspace(0, 1, len(unique_labels))]
-
-        clusters = []
-
-        for k, col in zip(unique_labels, colors):
-            if k == -1:
-                # Black used for noise.
-                col = [0, 0, 0, 1]
-            class_member_mask = (labels == k)
-            xyz = data[class_member_mask & core_samples_mask]
-            if xyz.any():  # in case there are none objects
-                clusters.append(xyz)  # append this cluster data to the cluster list
-            # each cluster is a 3 * n matrix
-            xyz = data[class_member_mask & ~core_samples_mask]
             if isplot:
-                ax2.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=12, marker='X')  # plot the noise
+                ax2 = plt.subplot(2, 2, 2, projection='3d')
+                ax2.set_xlim((-0.3, 0.3))
+                ax2.set_ylim((-0.3, 0.3))
+                ax2.set_zlim((-0.3, 0.3))
+                ax2.set_xlabel('X', fontsize=10)
+                ax2.set_ylabel('Y', fontsize=10)
+                ax2.set_zlabel('Z', fontsize=10)
+                ax2.set_title('Clustered Points', fontsize=10)
 
-        # find the center for each cluster
-        clusters_centers = list(
-            map(lambda xyz: np.array([np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])]), clusters))
-        clusters.sort(key=lambda xyz: distance.euclidean((0.0, 0.0, 0.0), np.array(
-            [np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])])))
+            unique_labels = set(labels)
+            colors = [plt.cm.Spectral(each)
+                      for each in np.linspace(0, 1, len(unique_labels))]
 
-        # plot the clusters
-        for xyz, col in zip(clusters, colors):
+            clusters = []
+
+            for k, col in zip(unique_labels, colors):
+                if k == -1:
+                    # Black used for noise.
+                    col = [0, 0, 0, 1]
+                class_member_mask = (labels == k)
+                xyz = data[class_member_mask & core_samples_mask]
+                if xyz.any():  # in case there are none objects
+                    clusters.append(xyz)  # append this cluster data to the cluster list
+                # each cluster is a 3 * n matrix
+                xyz = data[class_member_mask & ~core_samples_mask]
+                if isplot:
+                    ax2.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=12,
+                                marker='X')  # plot the noise
+
+            # find the center for each cluster
+            clusters_centers = list(
+                map(lambda xyz: np.array([np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])]), clusters))
+            clusters.sort(key=lambda xyz: distance.euclidean((0.0, 0.0, 0.0), np.array(
+                [np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])])))
+
+            # plot the clusters
+            for xyz, col in zip(clusters, colors):
+                if isplot:
+                    ax2.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=28,
+                                marker='o')  # plot the cluster points
+
+            #############################
+            # clear the hand cluster
+            hand_cluster = []
+            bbox = (0.2, 0.2, 0.2)
+
+            if len(clusters) > 0:
+                hand_cluster = clusters[0]
+                point_num = hand_cluster.shape[0]
+
+                # if the cluster is outside the 20*20*20 cm bounding box
+                distance_from_center = distance.euclidean((0.0, 0.0, 0.0), np.array(
+                    [np.mean(hand_cluster[:, 0]), np.mean(hand_cluster[:, 1]), np.mean(hand_cluster[:, 2])]))
+
+                if distance_from_center > distance.euclidean((0.0, 0.0, 0.0),
+                                                             bbox):  # if the core of the cluster is too far away from the center
+                    hand_cluster = np.zeros((hand_cluster.shape[0], hand_cluster.shape[1] + 1))
+                else:
+                    doppler_array = np.zeros((point_num, 1))
+                    for j in range(point_num):
+                        doppler_array[j:, ] = doppler_dict[tuple(hand_cluster[j, :3])]
+                    # append back the doppler
+                    hand_cluster = np.append(hand_cluster, doppler_array, 1)
+        else:
+            hand_cluster = data
+
+        hand_cluster = np.array(hand_cluster)
+
+        # apply augmentation to hand cluster #############################
+        if hand_cluster.size != 0:
+            # apply augmentations
+            if augmentation == 'trans':
+                for p in np.nditer(hand_cluster[:, :3], op_flags=['readwrite']):
+                    p[...] = p + random.choice(seeds)
+
             if isplot:
-                ax2.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=28,
-                            marker='o')  # plot the cluster points
+                ax3 = plt.subplot(2, 2, 3, projection='3d')
+                ax3.set_xlim((-0.3, 0.3))
+                ax3.set_ylim((-0.3, 0.3))
+                ax3.set_zlim((-0.3, 0.3))
+                ax3.set_xlabel('X', fontsize=10)
+                ax3.set_ylabel('Y', fontsize=10)
+                ax3.set_zlabel('Z', fontsize=10)
+                ax3.set_title('Hand Cluster', fontsize=10)
 
-        #############################
-        # center normalize hand cluster
-        # clear the hand cluster
-        hand_cluster = []
-
-        bbox = (0.2, 0.2, 0.2)
-
-        if len(clusters) > 0:
-            hand_cluster = clusters[0]
-            point_num = hand_cluster.shape[0]
-
-            # if the cluster is outside the 20*20*20 cm bounding box
-            distance_from_center = distance.euclidean((0.0, 0.0, 0.0), np.array(
-                [np.mean(hand_cluster[:, 0]), np.mean(hand_cluster[:, 1]), np.mean(hand_cluster[:, 2])]))
-
-            if distance_from_center > distance.euclidean((0.0, 0.0, 0.0),
-                                                         bbox):  # if the core of the cluster is too far away from the center
-                hand_cluster = np.zeros((hand_cluster.shape[0], hand_cluster.shape[1] + 1))
-            else:
-                doppler_array = np.zeros((point_num, 1))
-                for j in range(point_num):
-                    doppler_array[j:, ] = doppler_dict[tuple(hand_cluster[j, :3])]
-                # append back the doppler
-                hand_cluster = np.append(hand_cluster, doppler_array, 1)
-                # perform column-wise min-max normalization
-                # hand_minMaxScaler = MinMaxScaler()
-                # hand_cluster = hand_minMaxScaler.fit_transform(hand_cluster)
+                ax3.scatter(hand_cluster[:, 0], hand_cluster[:, 1], hand_cluster[:, 2], 'o', c=hand_cluster[:, 3], s=28,
+                            marker='o')
 
         # create 3D feature space #############################
-        frame_3D_volume = snapPointsToVolume(np.asarray(hand_cluster), volume_shape)
+        frame_3D_volume = snapPointsToVolume(hand_cluster, volume_shape)
         volumes_for_this_interval.append(np.expand_dims(frame_3D_volume, axis=0))
 
-        #############################
+        # Plot the hand cluster #########################################
+
+        #################################################################
         # Combine the three images
         if isplot:
             plt.savefig(os.path.join(radar_3dscatter_path, str(timestamp) + '.jpg'))
@@ -584,12 +623,13 @@ def radar_data_grapher_volumned(paths, isplot=False):
             draw.text((x, y), message, fill=white_color, font=fnt)
 
             # draw the number of clusters and number of noise point on the clutter plot
-            (x, y) = (20, 80)
-            message = "Number of clusters: " + str(n_clusters_)
-            draw.text((x, y), message, fill=white_color, font=fnt)
-            (x, y) = (20, 100)
-            message = "Number of outliers: " + str(n_noise_)
-            draw.text((x, y), message, fill=white_color, font=fnt)
+            if isCluster:
+                (x, y) = (20, 80)
+                message = "Number of clusters: " + str(n_clusters_)
+                draw.text((x, y), message, fill=white_color, font=fnt)
+                (x, y) = (20, 100)
+                message = "Number of outliers: " + str(n_noise_)
+                draw.text((x, y), message, fill=white_color, font=fnt)
 
             # save the combined image
             new_im.save(
@@ -655,22 +695,22 @@ def radar_data_grapher_volumned(paths, isplot=False):
 
     print('Saving csv and npy to ' + out_path + '...')
     np.save(os.path.join(out_path, 'label_array'), label_array)
-    np.save(os.path.join(out_path, 'intervaled_3D_volumes_' + str(volume_shape[0]) + 'x'), interval_volume_array)
+    np.save(os.path.join(out_path, 'intervaled_3D_volumes_' + str(volume_shape[0]) + 'x' + out_name),
+            interval_volume_array)
     print('Done saving to ' + out_path)
 
 
 def generate_path(subject_name: str, case_index: int):
-
     identity_string = subject_name + '_' + str(case_index)
     f_dir = 'f_data_' + identity_string
     v_dir = 'v_data_' + identity_string
 
     dataRootPath = 'F:/indexPen/data'
-    figureRootPath = 'F:/indexPen/figures'
+    figureRootPath = 'F:/indexPen/figures_common'
 
     radarData_path = os.path.join(dataRootPath, f_dir, 'f_data.p')
     videoData_path = os.path.join(dataRootPath, v_dir, 'cam2')
     mergedImg_path = os.path.join(figureRootPath, identity_string)
-    out_path = os.path.join('F:/indexPen/csv', identity_string)
+    out_path = os.path.join('F:/indexPen/csv_augmented', identity_string)
 
     return radarData_path, videoData_path, mergedImg_path, out_path

@@ -1,3 +1,5 @@
+import datetime
+
 from keras import Sequential, optimizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers import Conv3D, MaxPooling3D, Flatten, TimeDistributed, LSTM, Dropout, Dense, BatchNormalization
@@ -11,38 +13,41 @@ import os
 import time
 
 input_dir_list = [
-    'F:/indexPen/csv/zr_0',
-    'F:/indexPen/csv/zr_1',
+    'F:/indexPen/csv_augmented/zr_0',
+    'F:/indexPen/csv_augmented/zr_1',
 
-    'F:/indexPen/csv/py_0',
-    'F:/indexPen/csv/py_1',
+    'F:/indexPen/csv_augmented/py_0',
+    'F:/indexPen/csv_augmented/py_1',
 
-    'F:/indexPen/csv/ya_0',
-    'F:/indexPen/csv/ya_1',
+    'F:/indexPen/csv_augmented/ya_0',
+    'F:/indexPen/csv_augmented/ya_1',
 
-    'F:/indexPen/csv/zl_0',
-    'F:/indexPen/csv/zl_1',
+    'F:/indexPen/csv_augmented/zl_0',
+    'F:/indexPen/csv_augmented/zl_1',
 
-    'F:/indexPen/csv/zy_0',
-    'F:/indexPen/csv/zy_1',
+    'F:/indexPen/csv_augmented/zy_0',
+    'F:/indexPen/csv_augmented/zy_1',
 ]
 
 X = None
 Y = None
 for input_dir in input_dir_list:
-    data = np.load(os.path.join(input_dir, 'intervaled_3D_volumes_25x.npy'))
+    data_list = [ np.load(os.path.join(input_dir, 'intervaled_3D_volumes_25x.npy')),
+                  np.load(os.path.join(input_dir, 'intervaled_3D_volumes_25xtrans_aug.npy'))]
     label_array = np.load(os.path.join(input_dir, 'label_array.npy'))
 
-    # put in the data
-    if X is None:
-        X = data
-    else:
-        X = np.concatenate((X, data))
+    for data in data_list:
 
-    if Y is None:
-        Y = label_array
-    else:
-        Y = np.concatenate((Y, label_array))
+        # put in the data
+        if X is None:
+            X = data
+        else:
+            X = np.concatenate((X, data))
+
+        if Y is None:
+            Y = label_array
+        else:
+            Y = np.concatenate((Y, label_array))
 
 # Onehot encode Y ############################################
 onehotencoder = OneHotEncoder(categories='auto')
@@ -60,7 +65,17 @@ model.add(
                            activation='relu', kernel_regularizer=l2(0.0005)), input_shape=(100, 1, 25, 25, 25)))
 model.add(TimeDistributed(BatchNormalization()))
 model.add(TimeDistributed(MaxPooling3D(pool_size=(2, 2, 2))))
+
+# model.add(
+#     TimeDistributed(Conv3D(filters=32, kernel_size=(3, 3, 3), data_format='channels_first',
+#                            activation='relu', kernel_regularizer=l2(0.0005))))
+# model.add(TimeDistributed(BatchNormalization()))
+# model.add(TimeDistributed(MaxPooling3D(pool_size=(2, 2, 2))))
+
 model.add(TimeDistributed(Flatten()))
+
+model.add(LSTM(units=64, return_sequences=True))
+model.add(Dropout(rate=0.5))
 
 model.add(LSTM(units=64, return_sequences=False))
 model.add(Dropout(rate=0.5))
@@ -74,7 +89,7 @@ model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accurac
 
 # add early stopping
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=250)
-mc = ModelCheckpoint('D:/code/DoubleMU/trained_models/bestSoFar_indexPen_CRNN' + str(time.time()).replace(':', '-') + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+mc = ModelCheckpoint('F:/indexPen/trained_models/bestSoFar_indexPen_CRNN' + str(datetime.datetime.now()).replace(':', '-').replace(' ', '_') + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
 
 history = model.fit(X_train, Y_train, validation_data=(X_test, Y_test), shuffle=True, epochs=epochs,
                     batch_size=10, callbacks=[es, mc])

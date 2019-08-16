@@ -110,7 +110,7 @@ def rotateZ(m, theta):
     ])
     return transform(m, rotation_matrix)
 
-def get_index(m, index, r):
+def get_index(shape, index, r):
     """
 
     :param m: the 3*3*3 matrix where search will be done
@@ -121,7 +121,7 @@ def get_index(m, index, r):
     import itertools as it
     from scipy.spatial import distance
 
-    x,y,z = m.shape
+    x,y,z = shape
     index_x, index_y, index_z = index
     x_min = max(0, index_x - r)
     if x > index_x + r:
