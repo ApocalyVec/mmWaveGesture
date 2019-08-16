@@ -1,6 +1,7 @@
 from keras import Sequential
 from keras.layers import Conv3D, MaxPooling3D, Flatten, TimeDistributed, LSTM, Dropout, Dense, BatchNormalization
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
 import numpy as np
@@ -78,3 +79,20 @@ model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accur
 
 history = model.fit(X_train, Y_train, validation_data=(X_test, Y_test), shuffle=True, epochs=500,
                     batch_size=60)
+
+plt.plot(history.history['acc'])
+plt.plot(history.history['val_acc'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+# summarize history for loss
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()

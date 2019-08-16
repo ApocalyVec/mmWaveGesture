@@ -241,7 +241,7 @@ while True:
             # Store the current frame into frameData
             frameData[time.time()] = detObj
 
-            frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
+            # frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
             # preprocessed_frameArray.append(preprocess_frame(frameRow))
 
             time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz

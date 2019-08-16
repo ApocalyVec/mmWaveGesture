@@ -1,31 +1,36 @@
-from keras import Sequential
+from keras import Sequential, optimizers
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers import Conv3D, MaxPooling3D, Flatten, TimeDistributed, LSTM, Dropout, Dense, BatchNormalization
+from keras.regularizers import l2, l1
 from sklearn.model_selection import train_test_split
 
 from sklearn.preprocessing import OneHotEncoder
 import numpy as np
 
 import os
+import time
 
 input_dir_list = [
-    # 'F:/indexPen/csv/ya_0',
-    # 'F:/indexPen/csv/ya_1',
-    # 'F:/indexPen/csv/ya_3',
-    #
-    # 'F:/indexPen/csv/zl_0',
-    # 'F:/indexPen/csv/zl_1',
-    # 'F:/indexPen/csv/zl_3',
-    #
-    # 'F:/indexPen/csv/zy_0',
-    # 'F:/indexPen/csv/zy_1',
-    # 'F:/indexPen/csv/zy_2',
-    # 'F:/indexPen/csv/zy_3'
+    'F:/indexPen/csv/zr_0',
+    'F:/indexPen/csv/zr_1',
+
+    'F:/indexPen/csv/py_0',
+    'F:/indexPen/csv/py_1',
+
+    'F:/indexPen/csv/ya_0',
+    'F:/indexPen/csv/ya_1',
+
+    'F:/indexPen/csv/zl_0',
+    'F:/indexPen/csv/zl_1',
+
+    'F:/indexPen/csv/zy_0',
+    'F:/indexPen/csv/zy_1',
 ]
 
 X = None
 Y = None
 for input_dir in input_dir_list:
-    data = np.load(os.path.join(input_dir, 'intervaled_3D.npy'))
+    data = np.load(os.path.join(input_dir, 'intervaled_3D_volumes_25x.npy'))
     label_array = np.load(os.path.join(input_dir, 'label_array.npy'))
 
     # put in the data
@@ -44,35 +49,51 @@ onehotencoder = OneHotEncoder(categories='auto')
 Y = onehotencoder.fit_transform(np.expand_dims(Y, axis=1)).toarray()
 
 # Separate train and test
-test_ratio = 0.2
-
+test_ratio = 0.1
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.10, random_state=int(12))
 
 # Build the RNN ###############################################
 
-# input shape = (samples, num_timesteps, x_dim, y_xim, channels)
-
-# Conv structure #####################
-# cnn = Sequential()
-# cnn.add(Conv3D(filter=16, kernel_size=(3, 3), data_format='channels_last', input_shape=(100, 100, 100, 1),
-#                activation='relu'))
-# cnn.add(MaxPooling3D(pool_size=(2, 2, 2)))
-# cnn.add(Flatten())
-######################################
-
 model = Sequential()
 model.add(
-    TimeDistributed(Conv3D(filters=16, kernel_size=(3, 3, 3), data_format='channels_first', input_shape=(1, 20, 20, 20),
-                           activation='relu'), input_shape=(75, 1, 20, 20, 20)))
+    TimeDistributed(Conv3D(filters=16, kernel_size=(3, 3, 3), data_format='channels_first', input_shape=(1, 25, 25, 25),
+                           activation='relu', kernel_regularizer=l2(0.0005)), input_shape=(100, 1, 25, 25, 25)))
 model.add(TimeDistributed(BatchNormalization()))
 model.add(TimeDistributed(MaxPooling3D(pool_size=(2, 2, 2))))
 model.add(TimeDistributed(Flatten()))
 
-model.add(LSTM(units=50, return_sequences=False))
+model.add(LSTM(units=64, return_sequences=False))
 model.add(Dropout(rate=0.5))
 
 model.add(Dense(5, activation='softmax'))
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-history = model.fit(X_train, Y_train, validation_data=(X_test, Y_test), shuffle=True, epochs=500,
-                    batch_size=60)
+epochs = 5000
+
+adam = optimizers.adam(lr=1e-5, decay=1e-2/epochs)
+model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
+
+# add early stopping
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=250)
+mc = ModelCheckpoint('D:/code/DoubleMU/trained_models/bestSoFar_indexPen_CRNN' + str(time.time()).replace(':', '-') + '.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+
+history = model.fit(X_train, Y_train, validation_data=(X_test, Y_test), shuffle=True, epochs=epochs,
+                    batch_size=10, callbacks=[es, mc])
+
+import matplotlib.pyplot as plt
+
+plt.plot(history.history['acc'])
+plt.plot(history.history['val_acc'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+# summarize history for loss
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
