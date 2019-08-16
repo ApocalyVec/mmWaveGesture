@@ -110,6 +110,42 @@ def rotateZ(m, theta):
     ])
     return transform(m, rotation_matrix)
 
+def get_index(m, index, r):
+    """
+
+    :param m: the 3*3*3 matrix where search will be done
+    :param index: the center index, a tuple
+    :param r: the search radius
+    :return: a list of (distance, index) pairs for indices within radius
+    """
+    import itertools as it
+    from scipy.spatial import distance
+
+    x,y,z = m.shape
+    index_x, index_y, index_z = index
+    x_min = max(0, index_x - r)
+    if x > index_x + r:
+        x_max = index_x +r + 1
+    else:
+        x_max = x
+    y_min = max(0, index_y - r)
+    if y > index_y + r:
+        y_max = index_y +r + 1
+    else:
+        y_max = y
+    z_min = max(0, index_z - r)
+    if z > index_z + r:
+        z_max = index_z +r + 1
+    else:
+        z_max = z
+
+    result = []
+    for x, y, z in it.product(*[range(x_min, x_max), range(y_min, y_max), range(z_min, z_max)]):
+        if distance.euclidean((x, y, z), index) <= r: result.append((distance.euclidean((x, y, z), index), (x, y, z)))
+
+    return result
+
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
