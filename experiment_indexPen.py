@@ -21,5 +21,13 @@ for i, path in enumerate(specimen_list):
     radar_data_grapher_volumned(path, isCluster=True, augmentation=['clipping'], isDataGen=isDataGen)
     radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'clipping'], isDataGen=isDataGen)
     radar_data_grapher_volumned(path, isCluster=True, augmentation=['rot', 'clipping'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['scale', 'clipping'], isDataGen=isDataGen)
+
     radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'rot', 'clipping'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'scale', 'clipping'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['rot', 'scale', 'clipping'], isDataGen=isDataGen)
+
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'rot', 'scale', 'clipping'], isDataGen=isDataGen)
+
+
 

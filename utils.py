@@ -22,6 +22,8 @@ from sklearn.preprocessing import MinMaxScaler
 from transformation import translate, get_index, rotateZ, rotateY, rotateX, scale
 
 
+augmentation_list = ['trans', 'rot', 'scale']
+
 def estimate_coef(x, y):
     # number of observations/points
     n = np.size(x)
@@ -333,7 +335,7 @@ def snapPointsToVolume(points, volume_shape, isClipping=False, radius=3, decay=0
 
 
 def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentation=(),
-                                seeds=np.random.normal(0, 0.02, 5000), isDataGen=False):
+                                seeds=np.random.normal(0, 0.02, 5000), isDataGen=True):
     # utility directory to save the pyplots
     radarData_path, videoData_path, mergedImg_path, out_path, identity_string = paths
 
@@ -732,23 +734,22 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
     print('Done saving to ' + out_path)
 
 
-def generate_path(subject_name: str, case_index: int):
+def generate_path(subject_name: str, case_index: int, mode='indexPen'):
     identity_string = subject_name + '_' + str(case_index)
     f_dir = 'f_data_' + identity_string
     v_dir = 'v_data_' + identity_string
 
-    dataRootPath = 'F:/indexPen/data'
-    figureRootPath = 'F:/indexPen/figures_common'
+    dataRootPath = 'F:/' + mode + '/data'
+    figureRootPath = 'F:/' + mode + '/figures'
 
     radarData_path = os.path.join(dataRootPath, f_dir, 'f_data.p')
     videoData_path = os.path.join(dataRootPath, v_dir, 'cam2')
     mergedImg_path = os.path.join(figureRootPath, identity_string)
-    out_path = os.path.join('F:/indexPen/csv_augmented', identity_string)
+    out_path = os.path.join('F:/' + mode + '/csv_augmented', identity_string)
 
     return radarData_path, videoData_path, mergedImg_path, out_path, identity_string
 
-def generate_train_val_ids(test_ratio):
-    dataset_path = 'F:/indexPen/dataset'
+def generate_train_val_ids(test_ratio, dataset_path='D:/indexPen/dataset'):
     data_ids = os.listdir(dataset_path)
 
     data_ids = list(map(lambda x: os.path.splitext(x)[0], data_ids))
@@ -770,3 +771,262 @@ def generate_train_val_ids(test_ratio):
         data_dict['validation'].append((test_sample))
 
     return data_dict
+
+
+def radar_data_grapher_volumned_track(paths, isPlot=False, isCluster=False, augmentation=(),
+                                      seeds=np.random.normal(0, 0.02, 5000)):
+    # utility directory to save the pyplots
+    radarData_path, videoData_path, mergedImg_path, out_path, identity_string = paths
+
+    radar_3dscatter_path = 'F:/thumouse/figures/utils/'
+    dataset_path = 'F:/thumouse/dataset/'
+
+    if os.path.exists(dataset_path):
+        print('Removing old data in ' + dataset_path)
+        shutil.rmtree(dataset_path)
+
+    os.mkdir(dataset_path)
+
+    radar_data = list(pickle.load(open(radarData_path, 'rb')).items())
+    radar_data.sort(key=lambda x: x[0])  # sort by timestamp
+    videoData_list = os.listdir(videoData_path)
+    videoData_timestamps = list(map(lambda x: float(x.strip('.jpg')), videoData_list))
+
+    style.use('fivethirtyeight')
+    white_color = 'rgb(255, 255, 255)'
+
+    DBSCAN_esp = 0.2
+    DBSCAN_minSamples = 3
+
+    # input data for the classifier that has the shape n*4*100, n being the number of samples
+    num_padding = 100
+
+    fnt = ImageFont.truetype("arial.ttf", 16)
+
+    # removed and recreate the merged image folder
+    if isPlot:
+        if os.path.isdir(mergedImg_path):
+            shutil.rmtree(mergedImg_path)
+        os.mkdir(mergedImg_path)
+
+    volume_shape = (25, 25, 25)
+
+    circular_vol_buffer = []
+
+    interval_sec = 5
+    sample_per_sec = 20
+    sample_per_interval = interval_sec * sample_per_sec
+
+    aug_string = ''
+    if augmentation:
+        print('Use augmentation: ' + str(augmentation))
+        for aug in augmentation:
+            aug_string += '_' + aug
+    else:
+        print('No augmentation applied')
+
+    for i, radarFrame in enumerate(radar_data):
+
+        # retrieve the data
+        timestamp, fData = radarFrame
+
+        if isPlot:
+
+            closest_video_timestamp = min(videoData_timestamps,
+                                          key=lambda x: abs(x - timestamp))
+            closest_video_path = os.path.join(videoData_path, str(closest_video_timestamp) + '.jpg')
+            closest_video_img = Image.open(closest_video_path)
+
+            # plot the radar scatter
+            ax1 = plt.subplot(2, 2, 1, projection='3d')
+            ax1.set_xlim((-0.3, 0.3))
+            ax1.set_ylim((-0.3, 0.3))
+            ax1.set_zlim((-0.3, 0.3))
+            ax1.set_xlabel('X', fontsize=10)
+            ax1.set_ylabel('Y', fontsize=10)
+            ax1.set_zlabel('Z', fontsize=10)
+            ax1.set_title('Detected Points', fontsize=10)
+            # plot the detected points
+            ax1.scatter(fData['x'], fData['y'], fData['z'], c=fData['doppler'], marker='o')
+
+        data = np.asarray([fData['x'], fData['y'], fData['z'], fData['doppler']]).transpose()
+        # Do DBSCAN cluster ###########################################
+        # map the points to their doppler value, this is for retrieving the doppler value after clustering
+        if isCluster:
+            doppler_dict = {}
+            for point in data:
+                doppler_dict[tuple(point[:3])] = point[3:]
+            # get rid of the doppler for clustering TODO should we consider the doppler in clustering?
+            data = data[:, :3]
+
+            db = DBSCAN(eps=DBSCAN_esp, min_samples=DBSCAN_minSamples).fit(data)
+            core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+            core_samples_mask[db.core_sample_indices_] = True
+            labels = db.labels_
+            # Number of clusters in labels, ignoring noise if present.
+            n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+            n_noise_ = list(labels).count(-1)
+
+            if isPlot:
+                ax2 = plt.subplot(2, 2, 2, projection='3d')
+                ax2.set_xlim((-0.3, 0.3))
+                ax2.set_ylim((-0.3, 0.3))
+                ax2.set_zlim((-0.3, 0.3))
+                ax2.set_xlabel('X', fontsize=10)
+                ax2.set_ylabel('Y', fontsize=10)
+                ax2.set_zlabel('Z', fontsize=10)
+                ax2.set_title('Clustered Points', fontsize=10)
+
+            unique_labels = set(labels)
+            colors = [plt.cm.Spectral(each)
+                      for each in np.linspace(0, 1, len(unique_labels))]
+
+            clusters = []
+
+            for k, col in zip(unique_labels, colors):
+                if k == -1:
+                    # Black used for noise.
+                    col = [0, 0, 0, 1]
+                class_member_mask = (labels == k)
+                xyz = data[class_member_mask & core_samples_mask]
+                if xyz.any():  # in case there are none objects
+                    clusters.append(xyz)  # append this cluster data to the cluster list
+                # each cluster is a 3 * n matrix
+                xyz = data[class_member_mask & ~core_samples_mask]
+                if isPlot:
+                    ax2.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=12,
+                                marker='X')  # plot the noise
+
+            # find the center for each cluster
+            clusters_centers = list(
+                map(lambda xyz: np.array([np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])]), clusters))
+            clusters.sort(key=lambda xyz: distance.euclidean((0.0, 0.0, 0.0), np.array(
+                [np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])])))
+
+            # plot the clusters
+            for xyz, col in zip(clusters, colors):
+                if isPlot:
+                    ax2.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=28,
+                                marker='o')  # plot the cluster points
+
+            #############################
+            # clear the hand cluster
+            hand_cluster = []
+            bbox = (0.2, 0.2, 0.2)
+
+            if len(clusters) > 0:
+                hand_cluster = clusters[0]
+                point_num = hand_cluster.shape[0]
+
+                # if the cluster is outside the 20*20*20 cm bounding box
+                distance_from_center = distance.euclidean((0.0, 0.0, 0.0), np.array(
+                    [np.mean(hand_cluster[:, 0]), np.mean(hand_cluster[:, 1]), np.mean(hand_cluster[:, 2])]))
+
+                if distance_from_center > distance.euclidean((0.0, 0.0, 0.0),
+                                                             bbox):  # if the core of the cluster is too far away from the center
+                    hand_cluster = np.zeros((hand_cluster.shape[0], hand_cluster.shape[1] + 1))
+                else:
+                    doppler_array = np.zeros((point_num, 1))
+                    for j in range(point_num):
+                        doppler_array[j:, ] = doppler_dict[tuple(hand_cluster[j, :3])]
+                    # append back the doppler
+                    hand_cluster = np.append(hand_cluster, doppler_array, 1)
+        else:
+            hand_cluster = data
+
+        hand_cluster = np.array(hand_cluster)
+
+        # apply augmentation to hand cluster #############################
+        if hand_cluster.size != 0:
+            # apply augmentations
+            if 'trans' in augmentation:
+                for p in np.nditer(hand_cluster[:, :3], op_flags=['readwrite']):
+                    p[...] = p + random.choice(seeds)
+            if 'rot' in augmentation:
+                hand_cluster[:, :3] = rotateX(hand_cluster[:, :3], 720 * random.choice(seeds))
+                hand_cluster[:, :3] = rotateY(hand_cluster[:, :3], 720 * random.choice(seeds))
+                hand_cluster[:, :3] = rotateZ(hand_cluster[:, :3], 720 * random.choice(seeds))
+            if 'scale' in augmentation:
+                s = 1 + random.choice(seeds)
+                hand_cluster[:, :3] = scale(hand_cluster[:, :3], x=s, y=s, z=s)
+
+            if isPlot:
+                ax3 = plt.subplot(2, 2, 3, projection='3d')
+                ax3.set_xlim((-0.3, 0.3))
+                ax3.set_ylim((-0.3, 0.3))
+                ax3.set_zlim((-0.3, 0.3))
+                ax3.set_xlabel('X', fontsize=10)
+                ax3.set_ylabel('Y', fontsize=10)
+                ax3.set_zlabel('Z', fontsize=10)
+                ax3.set_title('Hand Cluster', fontsize=10)
+
+                ax3.scatter(hand_cluster[:, 0], hand_cluster[:, 1], hand_cluster[:, 2], 'o', c=hand_cluster[:, 3], s=28,
+                            marker='o')
+
+        # create 3D feature space #############################
+        frame_3D_volume = snapPointsToVolume(hand_cluster, volume_shape, isClipping=('clipping' in augmentation))
+        circular_vol_buffer.append(np.expand_dims(frame_3D_volume, axis=0))
+
+        print('Processing ' + str(i + 1) + ' of ' + str(len(radar_data)) + ' Circular buffer size: ' + str(len(circular_vol_buffer)))
+
+        if len(circular_vol_buffer) == 75:
+            # save this sequence
+            print('saving npy...', end='')
+            this_path = os.path.join(dataset_path, identity_string + '_' + str(timestamp.as_integer_ratio()[0]) + '_' + str(timestamp.as_integer_ratio()[1]))
+            if os.path.exists(this_path):
+                raise Exception('File ' + this_path + ' already exists. THIS SHOULD NEVER HAPPEN!')
+            np.save(this_path, circular_vol_buffer)
+            print('saved to ' + this_path)
+            circular_vol_buffer = circular_vol_buffer[1:]
+        elif len(circular_vol_buffer) > 75:
+            raise Exception('Circular Buffer Overflows. THIS SHOULD NEVER HAPPEN!')
+
+        # Plot the hand cluster #########################################
+
+        #################################################################
+        # Combine the three images
+        if isPlot:
+            plt.savefig(os.path.join(radar_3dscatter_path, str(timestamp) + '.jpg'))
+            radar_3dscatter_img = Image.open(os.path.join(radar_3dscatter_path, str(timestamp) + '.jpg'))
+
+            images = [closest_video_img, radar_3dscatter_img]  # add image here to arrange them horizontally
+            widths, heights = zip(*(i.size for i in images))
+            total_width = sum(widths)
+            max_height = max(heights)
+            new_im = Image.new('RGB', (total_width, max_height))
+            x_offset = 0
+            for im in images:
+                new_im.paste(im, (x_offset, 0))
+                x_offset += im.size[0]
+
+            timestamp_difference = abs(float(timestamp) - float(closest_video_timestamp))
+            draw = ImageDraw.Draw(new_im)
+
+            # draw the timestamp difference on the image
+            (x, y) = (20, 10)
+            message = "Timestamp Difference, abs(rt-vt): " + str(timestamp_difference)
+            draw.text((x, y), message, fill=white_color, font=fnt)
+            # draw the timestamp
+            (x, y) = (20, 30)
+            message = "Timestamp: " + str(timestamp)
+            draw.text((x, y), message, fill=white_color, font=fnt)
+
+            # draw the number of points
+            (x, y) = (20, 60)
+            message = "Number of detected points: " + str(xyz.shape[0])
+            draw.text((x, y), message, fill=white_color, font=fnt)
+
+            # draw the number of clusters and number of noise point on the clutter plot
+            if isCluster:
+                (x, y) = (20, 80)
+                message = "Number of clusters: " + str(n_clusters_)
+                draw.text((x, y), message, fill=white_color, font=fnt)
+                (x, y) = (20, 100)
+                message = "Number of outliers: " + str(n_noise_)
+                draw.text((x, y), message, fill=white_color, font=fnt)
+
+            # save the combined image
+            new_im.save(
+                os.path.join(mergedImg_path, str(timestamp) + '_' + str(timestamp.as_integer_ratio()[0]) +
+                             '_' + str(timestamp.as_integer_ratio()[1]) + '.jpg'))
+            plt.close('all')
