@@ -19,7 +19,7 @@ import pandas as pd
 
 from sklearn.preprocessing import MinMaxScaler
 
-from transformation import translate
+from transformation import translate, get_index, rotateZ, rotateY, rotateX, scale
 
 
 def estimate_coef(x, y):
@@ -276,8 +276,19 @@ def label(folder_path, data_file):
     return (data, not_found)
 
 
+# variables used in snapPointsToVolume
+xmin, xmax = -0.5, 0.5
+ymin, ymax = 0.0, 0.5
+zmin, zmax = -0.5, 0.5
+
+heatMin, heatMax = -1.0, 1.0
+xyzScaler = MinMaxScaler().fit(np.array([[xmin, ymin, zmin],
+                                         [xmax, ymax, zmax]]))
+heatScaler = MinMaxScaler().fit(np.array([[heatMin],
+                                          [heatMax]]))
+
 # volumn.shape = (5, 5, 5)
-def snapPointsToVolume(points, volume_shape, radius=1, decay=0.8):
+def snapPointsToVolume(points, volume_shape, isClipping=False, radius=3, decay=0.8):
     """
     make sure volume is a square
     :param points: n * 4 array
@@ -291,9 +302,7 @@ def snapPointsToVolume(points, volume_shape, radius=1, decay=0.8):
 
         # filter out points that are outside the bounding box
         # using ABSOLUTE normalization
-        xmin, xmax = -0.5, 0.5
-        ymin, ymax = 0.0, 0.5
-        zmin, zmax = -0.5, 0.5
+
 
         points_filtered = []
         for p in points:
@@ -303,40 +312,30 @@ def snapPointsToVolume(points, volume_shape, radius=1, decay=0.8):
             return volume
         points_filtered = np.asarray(points_filtered)
 
-        scaler = MinMaxScaler().fit([[xmin, ymin, zmin],
-                                     [xmax, ymax, zmax]])
-        points_filtered[:, :3] = scaler.transform(points_filtered[:, :3])
+        points_filtered[:, :3] = xyzScaler.transform(points_filtered[:, :3])
+        points_filtered[:, 3:] = heatScaler.transform(points_filtered[:, 3:])
 
         size = volume_shape[0]  # the length of thesquare side
         axis = np.array((size - 1) * points_filtered[:, :3], dtype=int)  # size minus 1 for index starts at 0
 
         for i, row in enumerate(points_filtered):
-            volume[axis[i][0], axis[i][1], axis[i][2]] = volume[axis[i][0], axis[i][1], axis[i][2]] + row[3]
+            heat = row[3]
 
-            # circular heating
-            # if radius >= 1:
-            #     for i in range(1, radius + 1):
-            #         index_list = set(
-            #             [axis[i][0], axis[i][1], axis[i][2], axis[i][0] + i, axis[i][0] - i, axis[i][1] + i, axis[i][1] - i,
-            #              axis[i][2] + i,
-            #              axis[i][2] - i])  # remove duplicates
-            #         factor = decay * (radius - i + 1) / radius
-            #         for combo in product(index_list, index_list, index_list):
-            #             try:
-            #                 if combo != (axis[i][0], axis[i][1], axis[i][2]):
-            #                     volume[combo[0], combo[1], combo[2]] = volume[combo[0], combo[1], combo[2]] + row[3] * factor
-            #             except IndexError:
-            #                 pass
-        # min max normalize the volume
-        # if np.max(volume) != np.min(volume):
-        #     volume = (volume - np.min(volume))/(np.max(volume) - np.min(volume))
+            volume[axis[i][0], axis[i][1], axis[i][2]] = volume[axis[i][0], axis[i][1], axis[i][2]] + heat
+
+            if isClipping:
+                point_to_clip = get_index(shape=volume_shape, index=(axis[i][0], axis[i][1], axis[i][2]), r=radius)
+                for dist, ptc in point_to_clip:
+                    if dist != 0.0:
+                        factor = (radius - dist + 1) * decay /radius
+                        volume[ptc[0], ptc[1], ptc[2]] = volume[ptc[0], ptc[1], ptc[2]] + heat * factor
     return volume
 
 
-def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentation=None,
-                                seeds=np.random.normal(0, 0.02, 5000), out_name=''):
+def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentation=(),
+                                seeds=np.random.normal(0, 0.02, 5000), isDataGen=False):
     # utility directory to save the pyplots
-    radarData_path, videoData_path, mergedImg_path, out_path = paths
+    radarData_path, videoData_path, mergedImg_path, out_path, identity_string = paths
 
     radar_3dscatter_path = 'F:/indexPen/figures/utils/radar_3dscatter'
 
@@ -381,16 +380,20 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
     sample_per_sec = 20
     sample_per_interval = interval_sec * sample_per_sec
 
+    aug_string = ''
     if augmentation:
-        print('Use augmentation: ' + augmentation)
+        print('Use augmentation: ' + str(augmentation))
+        for aug in augmentation:
+            aug_string += '_' + aug
     else:
         print('No augmentation applied')
+
     print('Label Cheat-sheet:')
-    print('1 for A')
-    print('4 for D')
-    print('12 for L')
-    print('13 for M')
-    print('16 for P')
+    print('0 for A')
+    print('1 for D')
+    print('2 for L')
+    print('3 for M')
+    print('4 for P')
 
     label_array = []
 
@@ -411,26 +414,26 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
             # decide the label
             if num_write == 1:
                 if interval_index % (5 * num_write) == 1:
-                    this_label = 1.0
+                    this_label = 0
                 elif interval_index % (5 * num_write) == 2:
-                    this_label = 4.0  # for label D
+                    this_label = 1  # for label D
                 elif interval_index % (5 * num_write) == 3:
-                    this_label = 12.0  # for label L
+                    this_label = 2  # for label L
                 elif interval_index % (5 * num_write) == 4:
-                    this_label = 13.0  # for label M
+                    this_label = 3  # for label M
                 elif interval_index % (5 * num_write) == 0:
-                    this_label = 16.0  # for label P
+                    this_label = 4  # for label P
             elif num_write == 2:
                 if interval_index % (5 * num_write) == 1 or interval_index % (5 * num_write) == 2:
-                    this_label = 1.0
+                    this_label = 0
                 elif interval_index % (5 * num_write) == 3 or interval_index % (5 * num_write) == 4:
-                    this_label = 4.0  # for label D
+                    this_label = 1  # for label D
                 elif interval_index % (5 * num_write) == 5 or interval_index % (5 * num_write) == 6:
-                    this_label = 12.0  # for label L
+                    this_label = 2  # for label L
                 elif interval_index % (5 * num_write) == 7 or interval_index % (5 * num_write) == 8:
-                    this_label = 13.0  # for label M
+                    this_label = 3  # for label M
                 elif interval_index % (5 * num_write) == 9 or interval_index % (5 * num_write) == 0:
-                    this_label = 16.0  # for label P
+                    this_label = 4  # for label P
             label_array.append(this_label)  # for label A
 
             print('Label for the last interval is ' + str(this_label) + ' Num Samples: ' + str(
@@ -566,9 +569,16 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
         # apply augmentation to hand cluster #############################
         if hand_cluster.size != 0:
             # apply augmentations
-            if augmentation == 'trans':
+            if 'trans' in augmentation:
                 for p in np.nditer(hand_cluster[:, :3], op_flags=['readwrite']):
                     p[...] = p + random.choice(seeds)
+            if 'rot' in augmentation:
+                hand_cluster[:, :3] = rotateX(hand_cluster[:, :3], 720 * random.choice(seeds))
+                hand_cluster[:, :3] = rotateY(hand_cluster[:, :3], 720 * random.choice(seeds))
+                hand_cluster[:, :3] = rotateZ(hand_cluster[:, :3], 720 * random.choice(seeds))
+            if 'scale' in augmentation:
+                s = 1 + random.choice(seeds)
+                hand_cluster[:, :3] = scale(hand_cluster[:, :3], x=s, y=s, z=s)
 
             if isplot:
                 ax3 = plt.subplot(2, 2, 3, projection='3d')
@@ -584,7 +594,7 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
                             marker='o')
 
         # create 3D feature space #############################
-        frame_3D_volume = snapPointsToVolume(hand_cluster, volume_shape)
+        frame_3D_volume = snapPointsToVolume(hand_cluster, volume_shape, isClipping=('clipping' in augmentation))
         volumes_for_this_interval.append(np.expand_dims(frame_3D_volume, axis=0))
 
         # Plot the hand cluster #########################################
@@ -694,9 +704,31 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
     assert len(label_array) == 50
 
     print('Saving csv and npy to ' + out_path + '...')
-    np.save(os.path.join(out_path, 'label_array'), label_array)
-    np.save(os.path.join(out_path, 'intervaled_3D_volumes_' + str(volume_shape[0]) + 'x' + out_name),
-            interval_volume_array)
+    if isDataGen:
+        dataset_path = 'F:/indexPen/dataset'
+        label_dict_path = 'F:/indexPen/labels/label_dict.p'
+        # load label dict
+        if os.path.exists(label_dict_path):
+            label_dict = pickle.load(open(label_dict_path, 'rb'))
+        else:  # create anew if does not exist
+            label_dict = {}
+
+        # put the label into the dict
+        for l_index, l in enumerate(label_array):
+            label_dict[identity_string + str(l_index) + aug_string] = l
+        # save label dict to disk
+        pickle.dump(label_dict, open(label_dict_path, 'wb'))
+
+        # save the data chunks (intervaled volumns)
+        for d_index, d in enumerate(interval_volume_array):
+            print('Saving chunk #' + str(d_index))
+            np.save(os.path.join(dataset_path, identity_string + str(d_index) + aug_string), d)
+
+    else:
+        np.save(os.path.join(out_path, 'label_array'), label_array)
+        np.save(os.path.join(out_path, 'intervaled_3D_volumes_' + str(volume_shape[0]) + 'x' + aug_string),
+                interval_volume_array)
+
     print('Done saving to ' + out_path)
 
 
@@ -713,4 +745,28 @@ def generate_path(subject_name: str, case_index: int):
     mergedImg_path = os.path.join(figureRootPath, identity_string)
     out_path = os.path.join('F:/indexPen/csv_augmented', identity_string)
 
-    return radarData_path, videoData_path, mergedImg_path, out_path
+    return radarData_path, videoData_path, mergedImg_path, out_path, identity_string
+
+def generate_train_val_ids(test_ratio):
+    dataset_path = 'F:/indexPen/dataset'
+    data_ids = os.listdir(dataset_path)
+
+    data_ids = list(map(lambda x: os.path.splitext(x)[0], data_ids))
+
+    random.shuffle(data_ids)
+    num_data = len(data_ids)
+
+    line = int((1-test_ratio) * num_data)
+
+    train_ids = data_ids[:line]
+    test_ids = data_ids[line:]
+
+    data_dict = {'train': [], 'validation': []}
+
+    for train_sample in train_ids:
+        data_dict['train'].append(train_sample)
+
+    for test_sample in test_ids:
+        data_dict['validation'].append((test_sample))
+
+    return data_dict

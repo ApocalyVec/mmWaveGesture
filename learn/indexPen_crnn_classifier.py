@@ -32,8 +32,8 @@ input_dir_list = [
 X = None
 Y = None
 for input_dir in input_dir_list:
-    data_list = [ np.load(os.path.join(input_dir, 'intervaled_3D_volumes_25x.npy')),
-                  np.load(os.path.join(input_dir, 'intervaled_3D_volumes_25xtrans_aug.npy'))]
+    data_list = [ np.load(os.path.join(input_dir, 'intervaled_3D_volumes_25x_clipping.npy')),
+                  np.load(os.path.join(input_dir, 'intervaled_3D_volumes_25x_trans_clipping.npy'))]
     label_array = np.load(os.path.join(input_dir, 'label_array.npy'))
 
     for data in data_list:

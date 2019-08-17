@@ -1,4 +1,3 @@
-# zr 0 ######################################################
 import os
 
 from utils import radar_data_grapher_volumned, generate_path
@@ -14,7 +13,13 @@ specimen_list = {generate_path('zr', 0), generate_path('zr', 1),
 
 # use data augmentation
 
-for path in specimen_list:
+isDataGen = True
+
+for i, path in enumerate(specimen_list):
     # generate orignial data
-    radar_data_grapher_volumned(path, isCluster=True)
-    radar_data_grapher_volumned(path, isCluster=True, augmentation='trans', out_name='trans_aug')
+    print('Processing specimen #' + str(i) + '__________________________________')
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['clipping'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'clipping'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['rot', 'clipping'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'rot', 'clipping'], isDataGen=isDataGen)
+

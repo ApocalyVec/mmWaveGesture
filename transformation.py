@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def transform(m, trans_m):
     """
     NOTE: this function is called by other transformation functions, do not call this function directly
@@ -16,6 +17,7 @@ def transform(m, trans_m):
         # apply translation to a single point
         result[row] = np.delete(np.matmul(trans_m, tmp).reshape(-1), 3)
     return result
+
 
 def translate(m, x, y, z):
     """
@@ -58,7 +60,6 @@ def scale(m, x, y, z):
     return translate(tmp, offset_x, offset_y, offset_y)
 
 
-
 def rotateX(m, theta):
     """
 
@@ -75,6 +76,7 @@ def rotateX(m, theta):
         [0., 0., 0., 1.]
     ])
     return transform(m, rotation_matrix)
+
 
 def rotateY(m, theta):
     """
@@ -93,6 +95,7 @@ def rotateY(m, theta):
     ])
     return transform(m, rotation_matrix)
 
+
 def rotateZ(m, theta):
     """
 
@@ -110,6 +113,7 @@ def rotateZ(m, theta):
     ])
     return transform(m, rotation_matrix)
 
+
 def get_index(shape, index, r):
     """
 
@@ -121,21 +125,21 @@ def get_index(shape, index, r):
     import itertools as it
     from scipy.spatial import distance
 
-    x,y,z = shape
+    x, y, z = shape
     index_x, index_y, index_z = index
     x_min = max(0, index_x - r)
     if x > index_x + r:
-        x_max = index_x +r + 1
+        x_max = index_x + r + 1
     else:
         x_max = x
     y_min = max(0, index_y - r)
     if y > index_y + r:
-        y_max = index_y +r + 1
+        y_max = index_y + r + 1
     else:
         y_max = y
     z_min = max(0, index_z - r)
     if z > index_z + r:
-        z_max = index_z +r + 1
+        z_max = index_z + r + 1
     else:
         z_max = z
 
@@ -145,29 +149,28 @@ def get_index(shape, index, r):
 
     return result
 
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
-
-    arr = np.random.rand(100, 3)
-
-    fig = plt.figure()
-    ax = Axes3D(fig)
-
-    ax.scatter(arr[:, 0], arr[:, 1], arr[:, 2])
-
-    # result = translate(arr, 2, 2, 2)
-    result = scale(arr, 3, 3, 3)
-    # result = rotateX(arr, 180)
-
-    ax.scatter(result[:, 0], result[:, 1], result[:, 2])
-
-    result2 = scale(arr, 2, 2, 2)
-    ax.scatter(result2[:, 0], result2[:, 1], result2[:, 2])
-
-    result3 = scale(arr, 2.5, 2.5, 2.5)
-    ax.scatter(result3[:, 0], result3[:, 1], result3[:, 2])
-
-    plt.show()
-
+# if __name__ == '__main__':
+#     import matplotlib.pyplot as plt
+#     from mpl_toolkits.mplot3d import Axes3D
+#
+#     arr = np.random.rand(100, 3)
+#
+#     fig = plt.figure()
+#     ax = Axes3D(fig)
+#
+#     ax.scatter(arr[:, 0], arr[:, 1], arr[:, 2])
+#
+#     # result = translate(arr, 2, 2, 2)
+#     result = scale(arr, 3, 3, 3)
+#     # result = rotateX(arr, 180)
+#
+#     ax.scatter(result[:, 0], result[:, 1], result[:, 2])
+#
+#     result2 = scale(arr, 2, 2, 2)
+#     ax.scatter(result2[:, 0], result2[:, 1], result2[:, 2])
+#
+#     result3 = scale(arr, 2.5, 2.5, 2.5)
+#     ax.scatter(result3[:, 0], result3[:, 1], result3[:, 2])
+#
+#     plt.show()
+#
