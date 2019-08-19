@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from utils import radar_data_grapher_volumned, generate_path, radar_data_grapher_volumned_track
 import numpy as np
@@ -11,7 +12,11 @@ specimen_list = {generate_path('ag', 0, mode='thumouse'),
 
 # use data augmentation
 
-isDataGen = True
+dataset_path = 'F:/thumouse/dataset/'
+if os.path.exists(dataset_path):
+    print('Removing old data in ' + dataset_path)
+    shutil.rmtree(dataset_path)
+os.mkdir(dataset_path)
 
 for i, path in enumerate(specimen_list):
     # generate orignial data

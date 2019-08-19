@@ -22,8 +22,9 @@ if __name__ == '__main__':
                      'n_classes': 5,
                      'shuffle': True}
 
+    dataset_path = 'F:/thumouse/dataset/'
     label_dict_path = 'D:/indexPen/labels/label_dict.p'
-    partition = generate_train_val_ids(0.1)
+    partition = generate_train_val_ids(0.1, dataset_path=dataset_path)
     labels = pickle.load(open(label_dict_path, 'rb'))
 
     ## Generators

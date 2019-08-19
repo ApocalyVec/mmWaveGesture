@@ -658,26 +658,26 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
             # decide the label
             if num_write == 1:
                 if interval_index % (5 * num_write) == 1:
-                    this_label = 1.0
+                    this_label = 0
                 elif interval_index % (5 * num_write) == 2:
-                    this_label = 4.0  # for label D
+                    this_label = 1  # for label D
                 elif interval_index % (5 * num_write) == 3:
-                    this_label = 12.0  # for label L
+                    this_label = 2  # for label L
                 elif interval_index % (5 * num_write) == 4:
-                    this_label = 13.0  # for label M
+                    this_label = 3  # for label M
                 elif interval_index % (5 * num_write) == 0:
-                    this_label = 16.0  # for label P
+                    this_label = 4  # for label P
             elif num_write == 2:
                 if interval_index % (5 * num_write) == 1 or interval_index % (5 * num_write) == 2:
-                    this_label = 1.0
+                    this_label = 0
                 elif interval_index % (5 * num_write) == 3 or interval_index % (5 * num_write) == 4:
-                    this_label = 4.0  # for label D
+                    this_label = 1  # for label D
                 elif interval_index % (5 * num_write) == 5 or interval_index % (5 * num_write) == 6:
-                    this_label = 12.0  # for label L
+                    this_label = 2  # for label L
                 elif interval_index % (5 * num_write) == 7 or interval_index % (5 * num_write) == 8:
-                    this_label = 13.0  # for label M
+                    this_label = 3  # for label M
                 elif interval_index % (5 * num_write) == 9 or interval_index % (5 * num_write) == 0:
-                    this_label = 16.0  # for label P
+                    this_label = 4  # for label P
             label_array.append(this_label)  # for label A
 
             print('Label for the last interval is ' + str(this_label) + ' Num Samples: ' + str(
@@ -780,12 +780,6 @@ def radar_data_grapher_volumned_track(paths, isPlot=False, isCluster=False, augm
 
     radar_3dscatter_path = 'F:/thumouse/figures/utils/'
     dataset_path = 'F:/thumouse/dataset/'
-
-    if os.path.exists(dataset_path):
-        print('Removing old data in ' + dataset_path)
-        shutil.rmtree(dataset_path)
-
-    os.mkdir(dataset_path)
 
     radar_data = list(pickle.load(open(radarData_path, 'rb')).items())
     radar_data.sort(key=lambda x: x[0])  # sort by timestamp
