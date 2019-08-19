@@ -1,14 +1,22 @@
+import pickle
+
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 
-ag = np.load('/Users/Leo/Desktop/radar_arrays/ag_radar_tracking.npy')
-zl = np.load('/Users/Leo/Desktop/radar_arrays/zl_radar_tracking.npy')
-zy = np.load('/Users/Leo/Desktop/radar_arrays/zy_radar_tracking.npy')
+ag = np.load('D:/Programing/19Sum_ft_localization/darkflow-master/ft_detection/Predict_tracking/tracking_radar/radar_arrays/ag_radar_tracking.npy')
+zl = np.load('D:/Programing/19Sum_ft_localization/darkflow-master/ft_detection/Predict_tracking/tracking_radar/radar_arrays/zl_radar_tracking.npy')
+zy = np.load('D:/Programing/19Sum_ft_localization/darkflow-master/ft_detection/Predict_tracking/tracking_radar/radar_arrays/zy_radar_tracking.npy')
+
+all = np.concatenate((ag, zl, zy))
+mmScaler = MinMaxScaler()
+all[:, 3:] = mmScaler.fit_transform(all[:, 3:])
+pickle.dump(mmScaler, open('D:/Programing/19Sum_ft_localization/mmWaveGesture/ThuMouse/scaler/mmScaler', 'wb'))
 
 label_dict = dict()
 
-for ag_row, zl_row, zy_row in zip(ag, zl, zy):
-    label_dict['ag_0_' + str(ag_row[0].as_integer_ratio()[0]) + '_' + str(ag_row[0].as_integer_ratio()[0])] = np.asarray[ag_row[3], ag_row[4]]
-    label_dict['zl_0_' + str(zl_row[0].as_integer_ratio()[0]) + '_' + str(zl_row[0].as_integer_ratio()[0])] = np.asarray[zl_row[3], zl_row[4]]
-    label_dict['zy_0_' + str(zy_row[0].as_integer_ratio()[0]) + '_' + str(zy_row[0].as_integer_ratio()[0])] = np.asarray[zy_row[3], zy_row[4]]
+for row in all:
+    if str(row[0].as_integer_ratio()[0]) + '_' + str(row[0].as_integer_ratio()[1]) in label_dict.keys():
+        raise Exception('Duplicate key')
 
+    label_dict[str(row[0].as_integer_ratio()[0]) + '_' + str(row[0].as_integer_ratio()[1])] = np.asarray([row[3], row[4]])

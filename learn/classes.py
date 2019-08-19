@@ -96,12 +96,12 @@ class thumouseDataGen(keras.utils.Sequence):
         'Generates data containing batch_size samples'  # X : (n_samples, *dim, n_channels)
         # Initialization
         X = np.empty((self.batch_size, *self.dim))
-        y = np.empty((self.batch_size), dtype=int)
+        y = np.zeros((self.batch_size, 2))
 
         # Generate data
         for i, ID in enumerate(list_IDs_temp):
             # Store sample
-            X[i,] = np.load('D:/thumouse/dataset/' + ID + '.npy')
+            X[i,] = np.load('D:/Programing/19Sum_ft_localization/mmWaveGesture/ThuMouse/dataset/' + ID + '.npy')
 
             # Store class
             y[i] = self.labels[ID]
