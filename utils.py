@@ -734,7 +734,8 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
     print('Done saving to ' + out_path)
 
 
-def generate_path(subject_name: str, case_index: int, mode='indexPen'):
+def generate_path(subject_name: str, case_index: int, mode='indexPen') -> tuple:
+
     identity_string = subject_name + '_' + str(case_index)
     f_dir = 'f_data_' + identity_string
     v_dir = 'v_data_' + identity_string
@@ -966,7 +967,7 @@ def radar_data_grapher_volumned_track(paths, isPlot=False, isCluster=False, augm
         if len(circular_vol_buffer) == 75:
             # save this sequence
             print('saving npy...', end='')
-            this_path = os.path.join(dataset_path, identity_string + '_' + str(timestamp.as_integer_ratio()[0]) + '_' + str(timestamp.as_integer_ratio()[1]))
+            this_path = os.path.join(dataset_path, str(timestamp.as_integer_ratio()[0]) + '_' + str(timestamp.as_integer_ratio()[1]))
             if os.path.exists(this_path):
                 raise Exception('File ' + this_path + ' already exists. THIS SHOULD NEVER HAPPEN!')
             np.save(this_path, circular_vol_buffer)
