@@ -12,7 +12,7 @@ import time
 
 import warnings
 
-from iwr1443_utils import readAndParseData14xx, parseConfigFile
+from utils.iwr1443_utils import readAndParseData14xx, parseConfigFile
 
 configFileName = '1443config.cfg'
 

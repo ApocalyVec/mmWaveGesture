@@ -1,20 +1,13 @@
 import datetime
 import pickle
 
-from keras import Sequential, optimizers
+from keras import Sequential
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers import Conv3D, MaxPooling3D, Flatten, TimeDistributed, LSTM, Dropout, Dense, BatchNormalization
-from keras.regularizers import l2, l1
-from sklearn.model_selection import train_test_split
+from keras.regularizers import l2
 
-from sklearn.preprocessing import OneHotEncoder
-import numpy as np
-
-import os
-import time
-
-from learn.classes import indexPenDataGen, thumouseDataGen
-from utils import generate_train_val_ids
+from learn.classes import thumouseDataGen
+from utils.path_utils import generate_train_val_ids
 
 if __name__ == '__main__':
     dataGenParams = {'dim': (75, 1, 25, 25, 25),

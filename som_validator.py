@@ -2,16 +2,11 @@ import numpy as np
 import pickle
 import os
 
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import style
 
-from PIL import Image, ImageDraw, ImageFont
-from sklearn.cluster import DBSCAN
+from PIL import ImageFont
 
-from scipy.spatial import distance
-
-from utils import generate_plot
+from utils.path_utils import generate_plot
 
 # zl path
 # radarData_path = '/Users/hanfei/data/072819_zl_onNotOn/f_data-2019-07-28_22-11-01.258054_zl_onNotOn_rnn/f_data.p'

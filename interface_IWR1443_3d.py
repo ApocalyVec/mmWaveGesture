@@ -1,13 +1,9 @@
-import tensorflow as tf
-
 import _thread
 import pickle
-from threading import Timer, Thread, Event
+from threading import Thread, Event
 
 import serial
 import numpy as np
-import pyqtgraph as pg
-from pyqtgraph.Qt import QtGui
 
 import datetime
 import os
@@ -16,15 +12,12 @@ import time
 import warnings
 
 from classes.model_wrapper import NeuralNetwork
-from data_utils import preprocess_frame
-from iwr1443_utils import readAndParseData14xx, parseConfigFile
+from utils.data_utils import preprocess_frame
+from utils.iwr1443_utils import readAndParseData14xx, parseConfigFile
 
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 from matplotlib import style
 import matplotlib
-import PyQt5
-
 
 isPredict = False
 
@@ -134,7 +127,6 @@ frameData = {}
 preprocessed_frameArray = []
 
 # reading RNN model
-from keras.models import load_model
 
 if isPredict:
     regressive_classifier = NeuralNetwork()

@@ -1,8 +1,4 @@
-import os
-
-from utils import radar_data_grapher_volumned, generate_path
-import numpy as np
-from mpl_toolkits.mplot3d import axes3d, Axes3D
+from utils.path_utils import radar_data_grapher_volumned, generate_path
 
 specimen_list = {generate_path('zr', 0), generate_path('zr', 1),
                  generate_path('py', 0), generate_path('py', 1),

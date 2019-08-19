@@ -1,9 +1,7 @@
 import os
 import shutil
 
-from utils import radar_data_grapher_volumned, generate_path, radar_data_grapher_volumned_track
-import numpy as np
-from mpl_toolkits.mplot3d import axes3d, Axes3D
+from utils.path_utils import generate_path, radar_data_grapher_volumned_track
 
 specimen_list = {generate_path('ag', 0, mode='thumouse'),
                  generate_path('zy', 0, mode='thumouse'),

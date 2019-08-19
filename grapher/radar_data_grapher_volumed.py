@@ -4,17 +4,14 @@ import os
 import shutil
 
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import style
 
 from PIL import Image, ImageDraw, ImageFont
 from sklearn.cluster import DBSCAN
-from sklearn.preprocessing import MinMaxScaler
 
 from scipy.spatial import distance
-import pandas as pd
 
-from utils import snapPointsToVolume
+from utils.path_utils import snapPointsToVolume
 
 # IndexPen
 

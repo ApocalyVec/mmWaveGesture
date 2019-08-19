@@ -1,5 +1,3 @@
-from utils import label
-
 # df, not_found = label('/Users/hanfei/label_2/label_2', '/Users/hanfei/onNotOn_data.csv')
 #
 # print(len(not_found))

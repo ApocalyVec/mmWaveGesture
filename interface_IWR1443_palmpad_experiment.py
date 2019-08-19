@@ -1,8 +1,6 @@
-import tensorflow as tf
-
 import _thread
 import pickle
-from threading import Timer, Thread, Event
+from threading import Thread, Event
 
 import serial
 import numpy as np
@@ -16,8 +14,8 @@ import time
 import warnings
 
 from classes.model_wrapper import NeuralNetwork
-from data_utils import preprocess_frame
-from iwr1443_utils import readAndParseData14xx, parseConfigFile
+from utils.data_utils import preprocess_frame
+from utils.iwr1443_utils import readAndParseData14xx, parseConfigFile
 
 isPredict = False
 
@@ -140,7 +138,6 @@ preprocessed_frameArray = []
 frameArray = []
 
 # reading RNN model
-from keras.models import load_model
 
 if isPredict:
     # regressive_classifier = NeuralNetwork()
