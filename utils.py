@@ -734,7 +734,8 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
     print('Done saving to ' + out_path)
 
 
-def generate_path(subject_name: str, case_index: int, mode='indexPen'):
+def generate_path(subject_name: str, case_index: int, mode='indexPen') -> tuple:
+
     identity_string = subject_name + '_' + str(case_index)
     f_dir = 'f_data_' + identity_string
     v_dir = 'v_data_' + identity_string

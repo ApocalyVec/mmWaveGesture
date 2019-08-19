@@ -13,7 +13,7 @@ import numpy as np
 import os
 import time
 
-from learn.classes import DataGenerator
+from learn.classes import indexPenDataGen
 from utils import generate_train_val_ids
 
 if __name__ == '__main__':
@@ -28,8 +28,8 @@ if __name__ == '__main__':
 
     ## Generators
 
-    training_gen = DataGenerator(partition['train'], labels, **dataGenParams)
-    validation_gen = DataGenerator(partition['validation'], labels, **dataGenParams)
+    training_gen = thumouseDataGen(partition['train'], labels, **dataGenParams)
+    validation_gen = thumouseDataGen(partition['validation'], labels, **dataGenParams)
 
 
     # Build the RNN ###############################################
