@@ -36,6 +36,7 @@ y = []
 z = []
 doppler = []
 
+
 # ------------------------------------------------------------------
 
 # Function to configure the serial ports and send the data from
@@ -147,71 +148,20 @@ if isPredict:
 rnn_timestep = 100
 num_padding = 50
 
+
 def input_thread(a_list):
     input()
     interrupt_list.append(True)
 
 
-class prediction_thread(Thread):
+class PredicationThread(Thread):
     def __init__(self, event):
         Thread.__init__(self)
         self.stopped = event
 
     def run(self):
         while not self.stopped.wait(0.5):
-            prediction_funct_onNotOn_ANN()
-
-
-def prediction_funct_onNotOn_ANN():
-    if len(preprocessed_frameArray) > 0:
-        p = onNotOn_ann_classifier.predict(np.asarray([preprocessed_frameArray[len(preprocessed_frameArray) - 1]]))
-        p = onNotOn_encoder.inverse_transform(p)
-        p = p[0][0]
-        if p == 1:
-            print('No cluster')
-        elif p == 2:
-            print('Thumb is setting')
-        elif p == 3:
-            print('Thumb is raising')
-        elif p == 4:
-            print('Thumb is rubbing')
-        elif p == 5:
-            print('Thumb is rubbing in air')
-
-
-# def prediction_func_onNoton_RNN():
-#     if (len(frameData)) < rnn_timestep:
-#         print('Warming up')
-#     else:
-#         x = []
-#
-#         pred_data = list(frameData.items())
-#         pred_data = pred_data[len(pred_data) - rnn_timestep:]
-#
-#         for entry in pred_data:
-#             data = entry[1]
-#             data = np.asarray([data['x'], data['y'], data['z'], data['doppler']]).transpose()
-#             if data.shape[0] > num_padding:
-#                 raise Exception('Insufficient Padding')
-#             data = np.pad(data, ((0, num_padding - data.shape[0]), (0, 0)), 'constant', constant_values=0)
-#             data = data.reshape((400,))  # flatten
-#
-#             x.append(data)  # add one additional dimension
-#
-#         x = np.asarray(x)
-#         x = np.expand_dims(x, axis=0)
-#
-#         if x.shape != (1, 100, 400):
-#             print('Prediction: BAD Input Shape')
-#         else:
-#             prediction_result = regressive_classifier.predict(x)
-#             # print('Prediction: ' + str(prediction_result[0][0]), end='      ')
-#             print('Prediction: ', end='      ')
-#
-#             if prediction_result[0][0] > 0.5:
-#                 print('Thumb is ON Pointing Finger')
-#             else:
-#                 print('Thumb is NOT ON Pointing Finger')
+            pass
 
 
 input("Press Enter to start!...")
@@ -223,7 +173,7 @@ _thread.start_new_thread(input_thread, (interrupt_list,))
 # start the prediction thread
 stopFlag = Event()
 if isPredict:
-    thread = prediction_thread(stopFlag)
+    thread = PredicationThread(stopFlag)
     thread.start()
 
 start_time = time.time()

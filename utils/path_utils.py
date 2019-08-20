@@ -19,7 +19,7 @@ import pandas as pd
 
 from sklearn.preprocessing import MinMaxScaler
 
-from transformation import translate, get_index, rotateZ, rotateY, rotateX, scale
+from transformation import translate, sphere_search, rotateZ, rotateY, rotateX, scale
 
 
 augmentation_list = ['trans', 'rot', 'scale', 'clipping']
@@ -72,7 +72,7 @@ def snapPointsToVolume(points, volume_shape, isClipping=False, radius=3, decay=0
             volume[axis[i][0], axis[i][1], axis[i][2]] = volume[axis[i][0], axis[i][1], axis[i][2]] + heat
 
             if isClipping:
-                point_to_clip = get_index(shape=volume_shape, index=(axis[i][0], axis[i][1], axis[i][2]), r=radius)
+                point_to_clip = sphere_search(shape=volume_shape, index=(axis[i][0], axis[i][1], axis[i][2]), r=radius)
                 for dist, ptc in point_to_clip:
                     if dist != 0.0:
                         factor = (radius - dist + 1) * decay /radius

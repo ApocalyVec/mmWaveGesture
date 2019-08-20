@@ -1,7 +1,7 @@
 import datetime
 import pickle
 
-from keras import Sequential
+from keras import Sequential, optimizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers import Conv3D, MaxPooling3D, Flatten, TimeDistributed, LSTM, Dropout, Dense, BatchNormalization
 from keras.regularizers import l2
@@ -46,8 +46,8 @@ if __name__ == '__main__':
     model.add(Dense(units=2))
     epochs = 5000
 
-    # adam = optimizers.adam(lr=1e-5, decay=1e-2 / epochs)
-    model.compile(optimizer='adam', loss='mean_squared_error')
+    adam = optimizers.adam(lr=1e-3, decay=1e-2 / epochs)
+    model.compile(optimizer=adam, loss='mean_squared_error')
 
     # add early stopping
     es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=100)
