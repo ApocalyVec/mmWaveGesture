@@ -1,5 +1,6 @@
 import numpy as np
-
+import itertools as it
+from scipy.spatial import distance
 
 def transform(m, trans_m):
     """
@@ -114,7 +115,7 @@ def rotateZ(m, theta):
     return transform(m, rotation_matrix)
 
 
-def get_index(shape, index, r):
+def sphere_search(shape, index, r):
     """
 
     :param m: the 3*3*3 matrix where search will be done
@@ -122,8 +123,6 @@ def get_index(shape, index, r):
     :param r: the search radius
     :return: a list of (distance, index) pairs for indices within radius
     """
-    import itertools as it
-    from scipy.spatial import distance
 
     x, y, z = shape
     index_x, index_y, index_z = index
@@ -143,11 +142,10 @@ def get_index(shape, index, r):
     else:
         z_max = z
 
-    result = []
-    for x, y, z in it.product(*[range(x_min, x_max), range(y_min, y_max), range(z_min, z_max)]):
-        if distance.euclidean((x, y, z), index) <= r: result.append((distance.euclidean((x, y, z), index), (x, y, z)))
+    points_to_look = it.product(*[range(x_min, x_max), range(y_min, y_max), range(z_min, z_max)])
 
-    return result
+    return ((distance.euclidean((x, y, z), index), (x, y, z)) for x, y, z in points_to_look if distance.euclidean((x, y, z), index) <= r)
+
 
 # if __name__ == '__main__':
 #     import matplotlib.pyplot as plt
