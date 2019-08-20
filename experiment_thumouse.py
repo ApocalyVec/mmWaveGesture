@@ -22,7 +22,7 @@ for i, path in enumerate(specimen_list):
     # radar_data_grapher_volumned_track(path, isCluster=True, augmentation=['trans'])
     # radar_data_grapher_volumned_track(path, isCluster=True, augmentation=['rot'])
     # radar_data_grapher_volumned_track(path, isCluster=True, augmentation=['scale'])
-    radar_data_grapher_volumned_track(path, isPlot=True, isCluster=True)
+    radar_data_grapher_volumned_track(path, isCluster=True)
 
 
 

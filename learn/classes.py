@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import keras
 
@@ -5,7 +7,7 @@ import keras
 class indexPenDataGen(keras.utils.Sequence):
     'Generates data for Keras'
 
-    def __init__(self, list_IDs, labels, batch_size=10, dim=(100, 1, 25, 25, 25),
+    def __init__(self, list_IDs, labels, batch_size=8, dim=(100, 1, 25, 25, 25),
                  n_classes=5, shuffle=True):
         'Initialization'
         self.dim = dim
@@ -60,7 +62,7 @@ class indexPenDataGen(keras.utils.Sequence):
 class thumouseDataGen(keras.utils.Sequence):
     'Generates data for Keras'
 
-    def __init__(self, list_IDs, labels, batch_size=10, dim=(100, 1, 25, 25, 25), shuffle=True):
+    def __init__(self, list_IDs, labels, batch_size=10, dim=(10, 1, 25, 25, 25), shuffle=True, dataset_path='D:/thumouse/dataset'):
         'Initialization'
         self.dim = dim
         self.batch_size = batch_size
@@ -68,6 +70,7 @@ class thumouseDataGen(keras.utils.Sequence):
         self.list_IDs = list_IDs
         self.shuffle = shuffle
         self.on_epoch_end()
+        self.dataset_path = dataset_path
 
     def __len__(self):
         'Denotes the number of batches per epoch'
@@ -101,7 +104,7 @@ class thumouseDataGen(keras.utils.Sequence):
         # Generate data
         for i, ID in enumerate(list_IDs_temp):
             # Store sample
-            X[i,] = np.load('D:/Programing/19Sum_ft_localization/mmWaveGesture/ThuMouse/dataset/' + ID + '.npy')
+            X[i,] = np.load(os.path.join(self.dataset_path, ID + '.npy'))
 
             # Store class
             y[i] = self.labels[ID]
