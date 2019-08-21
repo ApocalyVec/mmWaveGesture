@@ -14,8 +14,8 @@ if __name__ == '__main__':
                      'batch_size': 8,
                      'shuffle': True}
 
-    dataset_path = 'F:/thumouse/dataset_timestep_1'
-    label_dict_path = 'F:/thumouse/labels_timestep_1/label_dict.p'
+    dataset_path = 'D:/thumouse/dataset_timestep_1'
+    label_dict_path = 'D:/thumouse/labels_timestep_1/label_dict.p'
 
     partition = generate_train_val_ids(0.1, dataset_path=dataset_path)
     labels = pickle.load(open(label_dict_path, 'rb'))
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     model.compile(optimizer=adam, loss='mean_squared_error')
 
     # add early stopping
-    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=50)
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=100)
     mc = ModelCheckpoint(
         'D:/thumouse/trained_models/bestSoFar_thuMouse_CRNN' + str(datetime.datetime.now()).replace(':', '-').replace(
             ' ', '_') + '.h5',
