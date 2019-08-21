@@ -10,13 +10,20 @@ zy = np.load('F:/thumouse/labels/radar_arrays/zy_radar_tracking.npy')
 
 all = np.concatenate((ag, zl, zy))
 mmScaler = MinMaxScaler()
-all[:, 3:] = mmScaler.fit_transform(all[:, 3:], feature_range=[0, 1])
-pickle.dump(mmScaler, open('F:/thumouse/scaler/mmScaler', 'wb'))
+all[:, 3:] = mmScaler.fit_transform(all[:, 3:])
+pickle.dump(mmScaler, open('D:/thumouse/scaler/mmScaler.p', 'wb'))
 
 label_dict = dict()
 
-for row in all:
+aug_strings = ['_clipping', '_trans_clipping']
+
+for i, row in enumerate(all):
+    print('Processing ' + str(i+1) + ' of ' + str(len(all)))
     if str(row[0].as_integer_ratio()[0]) + '_' + str(row[0].as_integer_ratio()[1]) in label_dict.keys():
         raise Exception('Duplicate key')
 
-    label_dict[str(row[0].as_integer_ratio()[0]) + '_' + str(row[0].as_integer_ratio()[1])] = np.asarray([row[3], row[4]])
+    if aug_strings is not None:
+        for aug_str in aug_strings:
+            label_dict[str(row[0].as_integer_ratio()[0]) + '_' + str(row[0].as_integer_ratio()[1]) + aug_str] = np.asarray([row[3], row[4]])
+
+# label_dict_path = 'F:/thumouse/labels_timestep_1/label_dict.p'

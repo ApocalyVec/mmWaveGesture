@@ -10,7 +10,7 @@ specimen_list = {generate_path('ag', 0, mode='thumouse'),
 
 # use data augmentation
 
-dataset_path = 'F:/thumouse/dataset/'
+dataset_path = 'F:/thumouse/dataset_timestep_1/'
 if os.path.exists(dataset_path):
     print('Removing old data in ' + dataset_path)
     shutil.rmtree(dataset_path)
@@ -22,7 +22,8 @@ for i, path in enumerate(specimen_list):
     # radar_data_grapher_volumned_track(path, isCluster=True, augmentation=['trans'])
     # radar_data_grapher_volumned_track(path, isCluster=True, augmentation=['rot'])
     # radar_data_grapher_volumned_track(path, isCluster=True, augmentation=['scale'])
-    radar_data_grapher_volumned_track(path, isCluster=True)
+    radar_data_grapher_volumned_track(path, isCluster=True, augmentation=['clipping'], dataset_path=dataset_path, timesteps=1)
+    radar_data_grapher_volumned_track(path, isCluster=True, augmentation=['trans', 'clipping'], dataset_path=dataset_path, timesteps=1)
 
 
 

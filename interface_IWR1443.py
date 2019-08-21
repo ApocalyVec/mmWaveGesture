@@ -171,9 +171,9 @@ interrupt_list = []
 _thread.start_new_thread(input_thread, (interrupt_list,))
 
 # start the prediction thread
-stopFlag = Event()
+pred_stop_flag = Event()
 if isPredict:
-    thread = PredicationThread(stopFlag)
+    thread = PredicationThread(pred_stop_flag)
     thread.start()
 
 start_time = time.time()
@@ -204,7 +204,7 @@ while True:
         win.close()
 
         # stop prediction thread
-        stopFlag.set()
+        pred_stop_flag.set()
 
         # save radar frame data
 

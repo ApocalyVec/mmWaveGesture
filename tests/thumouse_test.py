@@ -34,7 +34,7 @@ X_test = np.asarray(X_test)
 Y_predict = regressor.predict(X_test)
 
 # inverse scale
-mms = pickle.load(open('F:/thumouse/scaler/mmScaler', 'rb'))
+mms = pickle.load(open('F:/thumouse/scaler/mmScaler.p', 'rb'))
 Y_predict = mms.inverse_transform(Y_predict)
 Y_test = mms.inverse_transform(Y_test)
 

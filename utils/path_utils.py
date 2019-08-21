@@ -525,12 +525,11 @@ def generate_train_val_ids(test_ratio, dataset_path='D:/indexPen/dataset', sampl
 
 
 def radar_data_grapher_volumned_track(paths, isPlot=False, isCluster=False, augmentation=(),
-                                      seeds=np.random.normal(0, 0.02, 5000), timesteps=10):
+                                      seeds=np.random.normal(0, 0.02, 5000), timesteps=10, dataset_path = 'F:/thumouse/dataset/'):
     # utility directory to save the pyplots
     radarData_path, videoData_path, mergedImg_path, out_path, identity_string = paths
 
     radar_3dscatter_path = 'F:/thumouse/figures/utils/'
-    dataset_path = 'F:/thumouse/dataset/'
 
     radar_data = list(pickle.load(open(radarData_path, 'rb')).items())
     radar_data.sort(key=lambda x: x[0])  # sort by timestamp
@@ -544,7 +543,6 @@ def radar_data_grapher_volumned_track(paths, isPlot=False, isCluster=False, augm
     DBSCAN_minSamples = 3
 
     # input data for the classifier that has the shape n*4*100, n being the number of samples
-    num_padding = 100
 
     fnt = ImageFont.truetype("arial.ttf", 16)
 
@@ -710,21 +708,27 @@ def radar_data_grapher_volumned_track(paths, isPlot=False, isCluster=False, augm
 
         # create 3D feature space #############################
         frame_3D_volume = snapPointsToVolume(hand_cluster, volume_shape, isClipping=('clipping' in augmentation))
-        circular_vol_buffer.append(np.expand_dims(frame_3D_volume, axis=0))
 
         print('Processing ' + str(i + 1) + ' of ' + str(len(radar_data)) + ' Circular buffer size: ' + str(len(circular_vol_buffer)))
 
-        if len(circular_vol_buffer) == timesteps:
-            # save this sequence
-            print('saving npy...', end='')
-            this_path = os.path.join(dataset_path, str(timestamp.as_integer_ratio()[0]) + '_' + str(timestamp.as_integer_ratio()[1]))
-            if os.path.exists(this_path):
-                raise Exception('File ' + this_path + ' already exists. THIS SHOULD NEVER HAPPEN!')
-            np.save(this_path, circular_vol_buffer)
-            print('saved to ' + this_path)
-            circular_vol_buffer = circular_vol_buffer[1:]
-        elif len(circular_vol_buffer) > timesteps:
-            raise Exception('Circular Buffer Overflows. THIS SHOULD NEVER HAPPEN!')
+        if timesteps == 1:
+            this_path = os.path.join(dataset_path, str(timestamp.as_integer_ratio()[0]) + '_' + str(
+                timestamp.as_integer_ratio()[1]) + aug_string)
+            np.save(this_path, frame_3D_volume)
+        else:
+            circular_vol_buffer.append(np.expand_dims(frame_3D_volume, axis=0))
+
+            if len(circular_vol_buffer) == timesteps:
+                # save this sequence
+                print('saving npy...', end='')
+                this_path = os.path.join(dataset_path, str(timestamp.as_integer_ratio()[0]) + '_' + str(timestamp.as_integer_ratio()[1]) + aug_string)
+                if os.path.exists(this_path):
+                    raise Exception('File ' + this_path + ' already exists. THIS SHOULD NEVER HAPPEN!')
+                np.save(this_path, circular_vol_buffer)
+                print('saved to ' + this_path)
+                circular_vol_buffer = circular_vol_buffer[1:]
+            elif len(circular_vol_buffer) > timesteps:
+                raise Exception('Circular Buffer Overflows. THIS SHOULD NEVER HAPPEN!')
 
         # Plot the hand cluster #########################################
 
