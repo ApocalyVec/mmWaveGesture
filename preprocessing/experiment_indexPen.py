@@ -14,16 +14,16 @@ isDataGen = True
 for i, path in enumerate(specimen_list):
     # generate orignial data
     print('Processing specimen #' + str(i) + '__________________________________')
-    radar_data_grapher_volumned(path, isCluster=True, augmentation=['clipping'], isDataGen=isDataGen)
-    radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'clipping'], isDataGen=isDataGen)
-    radar_data_grapher_volumned(path, isCluster=True, augmentation=['rot', 'clipping'], isDataGen=isDataGen)
-    radar_data_grapher_volumned(path, isCluster=True, augmentation=['scale', 'clipping'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['rot'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['scale'], isDataGen=isDataGen)
 
-    radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'rot', 'clipping'], isDataGen=isDataGen)
-    radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'scale', 'clipping'], isDataGen=isDataGen)
-    radar_data_grapher_volumned(path, isCluster=True, augmentation=['rot', 'scale', 'clipping'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'rot'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'scale'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['rot', 'scale'], isDataGen=isDataGen)
 
-    radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'rot', 'scale', 'clipping'], isDataGen=isDataGen)
+    radar_data_grapher_volumned(path, isCluster=True, augmentation=['trans', 'rot', 'scale'], isDataGen=isDataGen)
 
 
 

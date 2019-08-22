@@ -3,11 +3,13 @@ import pickle
 
 from keras import Sequential, optimizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.layers import Conv3D, MaxPooling3D, Flatten, TimeDistributed, LSTM, Dropout, Dense, BatchNormalization
+from keras.layers import Conv3D, MaxPooling3D, Flatten, TimeDistributed, LSTM, Dropout, Dense, BatchNormalization, \
+    LeakyReLU
 from keras.regularizers import l2
 
 from learn.classes import indexPenDataGen
 from utils.path_utils import generate_train_val_ids
+
 
 if __name__ == '__main__':
     dataGenParams = {'dim': (100, 1, 25, 25, 25),
@@ -16,7 +18,8 @@ if __name__ == '__main__':
                      'shuffle': True}
 
     label_dict_path = 'D:/indexPen/labels/label_dict.p'
-    partition = generate_train_val_ids(0.1)
+    dataset_path = 'D:/indexPen/dataset'
+    partition = generate_train_val_ids(0.1, dataset_path=dataset_path)
     labels = pickle.load(open(label_dict_path, 'rb'))
 
     ## Generators
@@ -30,7 +33,12 @@ if __name__ == '__main__':
     model = Sequential()
     model.add(
         TimeDistributed(Conv3D(filters=16, kernel_size=(3, 3, 3), data_format='channels_first', input_shape=(1, 25, 25, 25),
-                               activation='relu', kernel_regularizer=l2(0.0005)), input_shape=(100, 1, 25, 25, 25)))
+                               kernel_regularizer=l2(0.0005)), input_shape=(100, 1, 25, 25, 25)))
+    model.add(TimeDistributed(LeakyReLU(alpha=0.1)))
+
+    model.add(TimeDistributed(Conv3D(filters=16, kernel_size=(3, 3, 3), data_format='channels_first')))
+    model.add(LeakyReLU(alpha=0.1))
+
     model.add(TimeDistributed(BatchNormalization()))
     model.add(TimeDistributed(MaxPooling3D(pool_size=(2, 2, 2))))
 
