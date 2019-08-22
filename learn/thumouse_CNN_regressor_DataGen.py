@@ -3,7 +3,8 @@ import pickle
 
 from keras import Sequential, optimizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.layers import Conv3D, MaxPooling3D, Flatten, TimeDistributed, LSTM, Dropout, Dense, BatchNormalization
+from keras.layers import Conv3D, MaxPooling3D, Flatten, TimeDistributed, LSTM, Dropout, Dense, BatchNormalization, \
+    LeakyReLU
 from keras.regularizers import l2
 
 from learn.classes import thumouseDataGen
@@ -14,8 +15,8 @@ if __name__ == '__main__':
                      'batch_size': 8,
                      'shuffle': True}
 
-    dataset_path = 'D:/thumouse/dataset_timestep_1'
-    label_dict_path = 'D:/thumouse/labels_timestep_1/label_dict.p'
+    dataset_path = 'D:/thumouse/dataset_timestep_1_noAug'
+    label_dict_path = 'D:/thumouse/labels_timestep_1_noAug/label_dict.p'
 
     partition = generate_train_val_ids(0.1, dataset_path=dataset_path)
     labels = pickle.load(open(label_dict_path, 'rb'))
@@ -26,8 +27,11 @@ if __name__ == '__main__':
 
     # Build the RNN ###############################################
     model = Sequential()
-    model.add(Conv3D(filters=16, kernel_size=(3, 3, 3), data_format='channels_first', input_shape=(1, 25, 25, 25),
-                     activation='relu', kernel_regularizer=l2(0.0005)))
+    model.add(Conv3D(filters=16, kernel_size=(3, 3, 3), data_format='channels_first', input_shape=(1, 25, 25, 25), kernel_regularizer=l2(0.0005)))
+    model.add(LeakyReLU(alpha=0.1))
+    model.add(Conv3D(filters=16, kernel_size=(3, 3, 3), data_format='channels_first'))
+    model.add(LeakyReLU(alpha=0.1))
+
     model.add(BatchNormalization())
     model.add(MaxPooling3D(pool_size=(2, 2, 2)))
 
@@ -39,7 +43,8 @@ if __name__ == '__main__':
 
     model.add(Flatten())
 
-    model.add(Dense(units=128, activation='relu'))
+    model.add(Dense(units=128))
+    model.add(LeakyReLU(alpha=0.1))
     model.add(Dropout(0.5))
 
     model.add(Dense(units=2))

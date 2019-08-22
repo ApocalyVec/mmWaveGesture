@@ -29,9 +29,9 @@ draw_x_y = None
 draw_z_v = None
 # variables for prediction
 data_q = collections.deque(maxlen=None)
-pred_thread_stop_flag = False
+general_thread_stop_flag = False
 # thread related variables
-pred_stop_flag = Event()
+main_stop_event = Event()
 
 dataOk = False
 
@@ -98,7 +98,7 @@ class PredictionThread(Thread):
         self.timestep = timestep
 
     def run(self):
-        global pred_thread_stop_flag
+        global general_thread_stop_flag
 
         while not pred_thread_stop_flag:
             pred_result = pred_func(model=self.model, timestep=self.timestep)
@@ -112,7 +112,7 @@ class InputThread(Thread):
         self.thread_id = thread_id
 
     def run(self):
-        global pred_stop_flag
+        global main_stop_event
 
         input()
         pred_stop_flag.set()
@@ -132,11 +132,11 @@ def pred_func(model: NeuralNetwork, timestep):
 
 def main():
     global data_q, frameData, dataOk
-    global pred_thread_stop_flag
+    global general_thread_stop_flag
     # gui related globals
     global draw_x_y, draw_z_v
     # thread related globals
-    global pred_stop_flag
+    global main_stop_event
 
     today = datetime.datetime.now()
 
