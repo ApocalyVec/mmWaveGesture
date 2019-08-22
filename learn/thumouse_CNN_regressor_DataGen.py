@@ -15,8 +15,8 @@ if __name__ == '__main__':
                      'batch_size': 8,
                      'shuffle': True}
 
-    dataset_path = 'D:/thumouse/dataset_timestep_1_noAug'
-    label_dict_path = 'D:/thumouse/labels_timestep_1_noAug/label_dict.p'
+    dataset_path = 'D:/thumouse/dataset_timestep_1_noClp'
+    label_dict_path = 'D:/thumouse/labels_timestep_1_noClp/label_dict.p'
 
     partition = generate_train_val_ids(0.1, dataset_path=dataset_path)
     labels = pickle.load(open(label_dict_path, 'rb'))
