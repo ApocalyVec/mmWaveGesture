@@ -11,7 +11,7 @@ zy = np.load('F:/thumouse/labels/radar_arrays/zy_radar_tracking.npy')
 all = np.concatenate((ag, zl, zy))
 mmScaler = MinMaxScaler()
 all[:, 3:] = mmScaler.fit_transform(all[:, 3:])
-pickle.dump(mmScaler, open('D:/thumouse/scaler/mmScaler.p', 'wb'))
+pickle.dump(mmScaler, open('D:/thumouse/scaler/thm_scaler.p', 'wb'))
 
 label_dict = dict()
 

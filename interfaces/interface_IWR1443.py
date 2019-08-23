@@ -57,6 +57,16 @@ Dataport = {}
 configFileName = 'D:/code/DoubleMU/1443config.cfg'
 configParameters = None
 
+# Model Globals
+# my_mode = ['thm', 'idp']
+my_mode = ['idp']
+idp_classify_threshold = 0.83730006  # avg of wrong mean and correct mean
+
+
+thm_model_path = 'D:/code/DoubleMU/models/thuMouse_model.h5'
+thm_scaler_path = 'D:/code/DoubleMU/models/scalers/thm_scaler.p'
+
+idp_model_path = 'D:/code/DoubleMU/models/palmPad_model.h5'
 
 
 # IWR1443 Interface Functions------------------------------------------------------------------------------------------
@@ -144,6 +154,7 @@ def load_model(model_path, encoder=None):
     else:
         return model
 
+
 x_list = []
 y_list = []
 
@@ -154,12 +165,10 @@ class PredictionThread(Thread):
         self.thread_id = thread_id
         self.model_encoder_dict = model_encoder_dict
         self.timestep = timestep
-        self.ring_buffer = np.zeros(tuple([timestep] + list(data_shape)))
-        self.buffer_head = 0
+        # create a sequence buffer of shape: timestemp * shape of the data
         self.mode = mode
         if 'thm' in mode:
             self.thumouse_gui = thumouse_gui
-
 
         if 'idp' in mode:
             pass
@@ -168,31 +177,46 @@ class PredictionThread(Thread):
         global general_thread_stop_flag
         global thm_gui_size
 
+        global idp_classify_threshold
+
+        idp_threshold = idp_classify_threshold  # copy as a local variable
+
         gui_wid_hei = thm_gui_size
 
-        maX = StreamingMovingAverage(window_size=10)
-        maY = StreamingMovingAverage(window_size=10)
+        # maX = StreamingMovingAverage(window_size=10)
+        # maY = StreamingMovingAverage(window_size=10)
 
-        x = 0
-        y = 0
-        delta_x = 0
-        deltaY = 0
+        mouse_x = 0
+        mouse_y = 0
+
+        sequence_buffer = np.zeros(tuple([self.timestep] + list(data_shape)))
+
+        idp_pred_dict = {0: 'A', 1: 'D', 2: 'L', 3: 'M', 4: 'P'}
 
         while not general_thread_stop_flag:
             # retrieve the data from deque
             if len(data_q) != 0:
-                self.ring_buffer[self.buffer_head] = data_q.pop()
-                self.buffer_head += 1
-                if self.buffer_head >= self.timestep:
-                    self.buffer_head = 0
+                # ditch the tail, append to head
+                sequence_buffer = np.concatenate((sequence_buffer[1:], np.expand_dims(data_q.pop(), axis=0)))
 
-                # print('Head is at ' + str(self.buffer_head))
+                if 'idp' in self.mode:
+                    time.sleep(1.0)
+                    idp_pre_result = pred_func(model=self.model_encoder_dict['idp'][0], data=np.expand_dims(sequence_buffer, axis=0))[0]
+                    pre_argmax = np.argmax(idp_pre_result)
+                    pre_amax = np.amax(idp_pre_result)
+
+                    if pre_amax > idp_threshold:  # a character is written
+                        print('You just wrote: ' + idp_pred_dict[pre_argmax], 'amax = ' + str(pre_amax))
+                        # clear the buffer
+                        sequence_buffer = np.zeros(tuple([self.timestep] + list(data_shape)))
+                    else:
+                        print('No writing, amax = ' + str(pre_amax))
 
                 if 'thm' in self.mode:
-                    pred_result = pred_func(model=self.model_encoder_dict['thm'][0],
-                                            data=np.expand_dims(self.ring_buffer[self.buffer_head - 1],
+                    thm_pred_result = pred_func(model=self.model_encoder_dict['thm'][0],
+                                            data=np.expand_dims(sequence_buffer[-1],  # always take the head
                                                                 axis=0))  # expand dim for single sample batch
-                    decoded_result = self.model_encoder_dict['thm'][1].inverse_transform(pred_result)
+                    decoded_result = self.model_encoder_dict['thm'][1].inverse_transform(thm_pred_result)
 
                     delta_x = decoded_result[0][0]
                     delta_y = decoded_result[0][1]
@@ -200,20 +224,18 @@ class PredictionThread(Thread):
                     # avg_x = maX.process(delta_x)
                     # avg_y = maY.process(delta_y)
 
-                    avg_x = delta_x
-                    avg_y = delta_y
+                    mouse_x = min(max(mouse_x + delta_x, 0), gui_wid_hei[0])
+                    mouse_y = min(max(mouse_y + delta_y, 0), gui_wid_hei[1])
 
-                    x = min(max(x + avg_x, 0), gui_wid_hei[0])
-                    y = min(max(y + avg_y, 0), gui_wid_hei[1])
+                    x_list.append(delta_x)
+                    y_list.append(delta_y)
 
-                    x_list.append(avg_x)
-                    y_list.append(avg_y)
+                    if self.thumouse_gui is not None:
+                        self.thumouse_gui.setData([mouse_x], [mouse_y])
 
                 # print(str(self.x) + ' ' + str(self.y))
                 # print(str([decoded_result[0][0]]) + str([decoded_result[0][1]]))
 
-                if self.thumouse_gui is not None:
-                    self.thumouse_gui.setData([x], [y])
 
 class StreamingMovingAverage:
     def __init__(self, window_size):
@@ -259,6 +281,10 @@ def main(is_simulate):
     global thm_gui_size
     global window
 
+    global thm_model_path
+
+    global my_mode
+
     warnings.simplefilter('ignore', np.RankWarning)
 
     # START QtAPPfor the plot
@@ -289,11 +315,13 @@ def main(is_simulate):
     print("Started, input anything in this console and hit enter to stop")
 
     # start the prediction thread
-    model_dict = {'thm': load_model('D:/thumouse/trained_models/thuMouse_noAug_572e-3.h5',
-                                    encoder='D:/thumouse/scaler/mmScaler.p')}
+    model_dict = {'thm': load_model(thm_model_path,
+                                    encoder=thm_scaler_path),
+                  'idp': load_model(idp_model_path,
+                                    encoder=onehot_decoder())}
 
     thread1 = PredictionThread(1, model_encoder_dict=model_dict,
-                               timestep=100, thumouse_gui=draw_thumouse_gui, mode=['thm'])
+                               timestep=100, thumouse_gui=draw_thumouse_gui, mode=my_mode)
 
     thread2 = InputThread(2)
 
@@ -316,7 +344,6 @@ def main(is_simulate):
                                          axis=0))  # expand dim for single channeled data
 
             QtGui.QApplication.processEvents()
-            # time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
         if main_stop_event.is_set():
             # set the stop flag for threads
             general_thread_stop_flag = True
