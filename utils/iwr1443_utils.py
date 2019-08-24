@@ -68,6 +68,7 @@ def readAndParseData14xx(Dataport, configParameters):
 
     # If magicOK is equal to 1 then process the message
     if magicOK:
+        return True, True, True
         # word array to convert 4 bytes to a 32 bit number
         word = [1, 2 ** 8, 2 ** 16, 2 ** 24]
 

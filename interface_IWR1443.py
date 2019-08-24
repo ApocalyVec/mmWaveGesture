@@ -20,7 +20,7 @@ from utils.iwr1443_utils import readAndParseData14xx, parseConfigFile
 
 isPredict = False
 
-configFileName = 'D:/PycharmProjects/mmWaveGesture/1443config_new.cfg'
+configFileName = 'D:/code/DoubleMU/1443config_new.cfg'
 data_q = collections.deque(maxlen=10)
 
 CLIport = {}
@@ -54,7 +54,7 @@ def serialConfig(configFileName):
     # Dataport = serial.Serial('/dev/ttyACM1', 921600)
 
     # For WINDOWS, CHANGE those serial port to match your machine's configuration
-    CLIport = serial.Serial('COM3', 115200)
+    CLIport = serial.Serial('COM5', 115200)
     Dataport = serial.Serial('COM4', 921600)
 
     # Read the configuration file and send it to the board
@@ -143,7 +143,7 @@ while True:
             # frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
             # preprocessed_frameArray.append(preprocess_frame(frameRow))
 
-            time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
+            # time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
 
         if interrupt_list:
             raise KeyboardInterrupt()
