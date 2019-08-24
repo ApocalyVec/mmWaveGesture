@@ -54,7 +54,7 @@ def serialConfig(configFileName):
     # Dataport = serial.Serial('/dev/ttyACM1', 921600)
 
     # For WINDOWS, CHANGE those serial port to match your machine's configuration
-    CLIport = serial.Serial('COM5', 115200)
+    CLIport = serial.Serial('COM3', 115200)
     Dataport = serial.Serial('COM4', 921600)
 
     # Read the configuration file and send it to the board
@@ -143,7 +143,7 @@ while True:
             # frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
             # preprocessed_frameArray.append(preprocess_frame(frameRow))
 
-            # time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
+            time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
 
         if interrupt_list:
             raise KeyboardInterrupt()
@@ -159,7 +159,16 @@ while True:
         main_stop_event.set()
 
         # save radar frame data
+        print('Sensor Stopped')
 
+        if len(frameData) != 0:
+            print('The number of frame collected is ' + str(len(frameData)))
+            time_record = max(x[0] for x in frameData) - min(x[0] for x in frameData)
+            expected_frame_num = time_record * 20
+            frame_drop_rate = len(frameData) / expected_frame_num
+            print('Recording time is ' + str(time_record))
+            print('The expected frame num is ' + str(expected_frame_num))
+            print('Frame drop rate is ' + str(1 - frame_drop_rate))
         is_save = input('do you wish to save the recorded frames? [y/n]')
 
         if is_save == 'y':
