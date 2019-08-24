@@ -18,7 +18,7 @@ from utils.iwr1443_utils import readAndParseData14xx, parseConfigFile
 
 isPredict = False
 
-configFileName = '1443config.cfg'
+configFileName = 'D:/PycharmProjects/mmWaveGesture/1443config_new.cfg'
 
 CLIport = {}
 Dataport = {}
@@ -127,6 +127,7 @@ class PredicationThread(Thread):
 
 
 input("Press Enter to start!...")
+print('Started!')
 
 # create the interrupt thread
 interrupt_list = []
@@ -152,7 +153,7 @@ while True:
             # frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
             # preprocessed_frameArray.append(preprocess_frame(frameRow))
 
-            time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
+            # time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
 
         if interrupt_list:
             raise KeyboardInterrupt()
