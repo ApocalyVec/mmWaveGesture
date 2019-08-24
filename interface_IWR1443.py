@@ -1,11 +1,12 @@
 import _thread
+import collections
 import pickle
 from threading import Thread, Event
 
 import serial
 import numpy as np
 import pyqtgraph as pg
-from matplotlib import collections
+
 from pyqtgraph.Qt import QtGui
 
 import datetime
@@ -20,7 +21,7 @@ from utils.iwr1443_utils import readAndParseData14xx, parseConfigFile
 isPredict = False
 
 configFileName = 'D:/PycharmProjects/mmWaveGesture/1443config_new.cfg'
-data_q = collections.deque(maxlen=None)
+data_q = collections.deque(maxlen=10)
 
 CLIport = {}
 Dataport = {}
@@ -137,6 +138,7 @@ while True:
         if dataOk:
             # Store the current frame into frameData
             frameData.append((time.time(), detObj))
+            data_q.append(detObj)
 
             # frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
             # preprocessed_frameArray.append(preprocess_frame(frameRow))
