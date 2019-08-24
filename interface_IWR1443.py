@@ -1,10 +1,12 @@
 import _thread
+import collections
 import pickle
 from threading import Thread, Event
 
 import serial
 import numpy as np
 import pyqtgraph as pg
+
 from pyqtgraph.Qt import QtGui
 
 import datetime
@@ -19,6 +21,7 @@ from utils.iwr1443_utils import readAndParseData14xx, parseConfigFile
 isPredict = False
 
 configFileName = 'D:/PycharmProjects/mmWaveGesture/1443config_new.cfg'
+data_q = collections.deque(maxlen=10)
 
 CLIport = {}
 Dataport = {}
@@ -68,24 +71,10 @@ def serialConfig(configFileName):
 
 # Funtion to update the data and display in the plot
 def update():
-    dataOk = 0
-
-    x = []
-    y = []
-    z = []
-    doppler = []
-
     # Read and parse the received data
     dataOk, frameNumber, detObj = readAndParseData14xx(Dataport, configParameters)
 
-    if dataOk:
-        # print(detObj)
-        x = -detObj["x"]
-        y = detObj["y"]
-        z = detObj["z"]
-        doppler = detObj["doppler"]  # doppler values for the detected points in m/s
-
-    return dataOk
+    return dataOk, frameNumber, detObj
 
 
 # -------------------------    MAIN   -----------------------------------------
@@ -102,7 +91,7 @@ configParameters = parseConfigFile(configFileName)
 
 # Main loop
 detObj = {}
-frameData = {}
+frameData = []
 preprocessed_frameArray = []
 
 # reading RNN model
@@ -144,11 +133,12 @@ start_time = time.time()
 while True:
     try:
         # Update the data and check if the data is okay
-        dataOk = update()
+        dataOk, frameNumber, detObj = update()
 
         if dataOk:
             # Store the current frame into frameData
-            frameData[time.time()] = detObj
+            frameData.append((time.time(), detObj))
+            data_q.append(detObj)
 
             # frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
             # preprocessed_frameArray.append(preprocess_frame(frameRow))
