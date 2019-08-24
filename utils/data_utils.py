@@ -72,15 +72,14 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     fig.tight_layout()
     return ax
 
+DBSCAN_esp = 0.2
+DBSCAN_minSamples = 3
 def preprocess_frame(data, isCluster=True, isClipping=False):
     """
 
     :param frame: np array with input shape (n, 4)
     :return hand cluster of shape (200)
     """
-    DBSCAN_esp = 0.2
-    DBSCAN_minSamples = 3
-    num_padding = 100
 
     bbox = (0.2, 0.2, 0.2)
 
@@ -110,8 +109,8 @@ def preprocess_frame(data, isCluster=True, isClipping=False):
             xyz = data[class_member_mask & ~core_samples_mask]
 
         # find the center for each cluster
-        clusters_centers = list(
-            map(lambda xyz: np.array([np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])]), clusters))
+        # clusters_centers = list(
+        #     map(lambda xyz: np.array([np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])]), clusters))
         clusters.sort(key=lambda xyz: distance.euclidean((0.0, 0.0, 0.0), np.array(
             [np.mean(xyz[:, 0]), np.mean(xyz[:, 1]), np.mean(xyz[:, 2])])))
 

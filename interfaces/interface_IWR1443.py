@@ -60,8 +60,8 @@ configParameters = None
 # Model Globals
 # my_mode = ['thm', 'idp']
 my_mode = ['idp']
-idp_classify_threshold = 0.83730006  # avg of wrong mean and correct mean
-
+# idp_classify_threshold = 0.83730006  # avg of wrong mean and correct mean
+idp_classify_threshold = 0.7
 
 thm_model_path = 'D:/code/DoubleMU/models/thuMouse_model.h5'
 thm_scaler_path = 'D:/code/DoubleMU/models/scalers/thm_scaler.p'
@@ -188,10 +188,14 @@ class PredictionThread(Thread):
 
         mouse_x = 0
         mouse_y = 0
+        thm_x_factor = 15
+        thm_y_factor = 5
 
-        sequence_buffer = np.zeros(tuple([self.timestep] + list(data_shape)))
+        #TODO
+        buffer_size = 35
+        sequence_buffer = np.zeros(tuple([buffer_size] + list(data_shape)))
 
-        idp_pred_dict = {0: 'A', 1: 'D', 2: 'L', 3: 'M', 4: 'P'}
+        idp_pred_dict = {0: 'A', 1: 'D', 2: 'L', 3: 'M', 4: 'P', 5: 'nothing'}
 
         while not general_thread_stop_flag:
             # retrieve the data from deque
@@ -200,15 +204,18 @@ class PredictionThread(Thread):
                 sequence_buffer = np.concatenate((sequence_buffer[1:], np.expand_dims(data_q.pop(), axis=0)))
 
                 if 'idp' in self.mode:
-                    time.sleep(1.0)
-                    idp_pre_result = pred_func(model=self.model_encoder_dict['idp'][0], data=np.expand_dims(sequence_buffer, axis=0))[0]
+                    time.sleep(0.5)
+                    idp_pre_result = pred_func(model=self.model_encoder_dict['idp'][0], data=np.expand_dims(np.concatenate((sequence_buffer, np.zeros((65, 1, 25, 25, 25)))), axis=0))[0]
                     pre_argmax = np.argmax(idp_pre_result)
                     pre_amax = np.amax(idp_pre_result)
 
                     if pre_amax > idp_threshold:  # a character is written
-                        print('You just wrote: ' + idp_pred_dict[pre_argmax], 'amax = ' + str(pre_amax))
-                        # clear the buffer
-                        sequence_buffer = np.zeros(tuple([self.timestep] + list(data_shape)))
+                        if pre_argmax == 5:
+                            print('No One is Writing' + '    amax = ' + str(pre_amax))
+                        else:
+                            print('You just wrote: ' + idp_pred_dict[pre_argmax] + '    amax = ' + str(pre_amax))
+                            # clear the buffer
+                            sequence_buffer = np.zeros(tuple([buffer_size] + list(data_shape)))
                     else:
                         print('No writing, amax = ' + str(pre_amax))
 
@@ -218,8 +225,8 @@ class PredictionThread(Thread):
                                                                 axis=0))  # expand dim for single sample batch
                     decoded_result = self.model_encoder_dict['thm'][1].inverse_transform(thm_pred_result)
 
-                    delta_x = decoded_result[0][0]
-                    delta_y = decoded_result[0][1]
+                    delta_x = decoded_result[0][0] * thm_x_factor
+                    delta_y = decoded_result[0][1] * thm_y_factor
 
                     # avg_x = maX.process(delta_x)
                     # avg_y = maY.process(delta_y)
@@ -233,7 +240,7 @@ class PredictionThread(Thread):
                     if self.thumouse_gui is not None:
                         self.thumouse_gui.setData([mouse_x], [mouse_y])
 
-                # print(str(self.x) + ' ' + str(self.y))
+                # print(str(delta_x) + ' ' + str(delta_y))
                 # print(str([decoded_result[0][0]]) + str([decoded_result[0][1]]))
 
 
@@ -340,8 +347,7 @@ def main(is_simulate):
             # Store the current frame into frameData
             frameData[time.time()] = detObj
             frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
-            data_q.append(np.expand_dims(preprocess_frame(frameRow, isClipping=False),
-                                         axis=0))  # expand dim for single channeled data
+            data_q.append(np.expand_dims(preprocess_frame(frameRow, isCluster=False, isClipping=False), axis=0))  # expand dim for single channeled data
 
             QtGui.QApplication.processEvents()
         if main_stop_event.is_set():
