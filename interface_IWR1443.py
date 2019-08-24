@@ -18,7 +18,7 @@ from utils.iwr1443_utils import readAndParseData14xx, parseConfigFile
 
 isPredict = False
 
-configFileName = '1443config.cfg'
+configFileName = 'D:/PycharmProjects/mmWaveGesture/1443config_new.cfg'
 
 CLIport = {}
 Dataport = {}
@@ -51,7 +51,7 @@ def serialConfig(configFileName):
     # Dataport = serial.Serial('/dev/ttyACM1', 921600)
 
     # For WINDOWS, CHANGE those serial port to match your machine's configuration
-    CLIport = serial.Serial('COM5', 115200)
+    CLIport = serial.Serial('COM3', 115200)
     Dataport = serial.Serial('COM4', 921600)
 
     # Read the configuration file and send it to the board
@@ -92,7 +92,7 @@ def update():
     draw_x_y.setData(x, y)
     draw_z_v.setData(z, doppler)
 
-    QtGui.QApplication.processEvents()
+    # QtGui.QApplication.processEvents()
 
     return dataOk
 
@@ -165,6 +165,7 @@ class PredicationThread(Thread):
 
 
 input("Press Enter to start!...")
+print('Started!')
 
 # create the interrupt thread
 interrupt_list = []
@@ -186,11 +187,12 @@ while True:
         if dataOk:
             # Store the current frame into frameData
             frameData[time.time()] = detObj
+            # print('read frame')
 
             # frameRow = np.asarray([detObj['x'], detObj['y'], detObj['z'], detObj['doppler']]).transpose()
             # preprocessed_frameArray.append(preprocess_frame(frameRow))
 
-            time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
+            # time.sleep(0.033)  # This is framing frequency Sampling frequency of 30 Hz
 
         if interrupt_list:
             raise KeyboardInterrupt()
