@@ -66,13 +66,9 @@ def serialConfig(configFileName):
 
 # ------------------------------------------------------------------
 
-
-# ------------------------------------------------------------------
-
 # Funtion to update the data and display in the plot
 def update():
     dataOk = 0
-    global detObj
 
     x = []
     y = []
@@ -89,16 +85,10 @@ def update():
         z = detObj["z"]
         doppler = detObj["doppler"]  # doppler values for the detected points in m/s
 
-    draw_x_y.setData(x, y)
-    draw_z_v.setData(z, doppler)
-
-    QtGui.QApplication.processEvents()
-
     return dataOk
 
 
 # -------------------------    MAIN   -----------------------------------------
-today = datetime.datetime.now()
 today = datetime.datetime.now()
 
 root_dn = 'data/f_data-' + str(today).replace(':', '-').replace(' ', '_')
@@ -110,40 +100,12 @@ CLIport, Dataport = serialConfig(configFileName)
 # Get the configuration parameters from the configuration file
 configParameters = parseConfigFile(configFileName)
 
-# START QtAPPfor the plot
-app = QtGui.QApplication([])
-
-# Set the plot
-pg.setConfigOption('background', 'w')
-win = pg.GraphicsWindow(title="2D scatter plot")
-fig_z_y = win.addPlot()
-fig_z_y.setXRange(-0.5, 0.5)
-fig_z_y.setYRange(0, 1.5)
-fig_z_y.setLabel('left', text='Y position (m)')
-fig_z_y.setLabel('bottom', text='X position (m)')
-draw_x_y = fig_z_y.plot([], [], pen=None, symbol='o')
-
-# set the processed plot
-fig_z_v = win.addPlot()
-fig_z_v.setXRange(-1, 1)
-fig_z_v.setYRange(-1, 1)
-fig_z_v.setLabel('left', text='Z position (m)')
-fig_z_v.setLabel('bottom', text='Doppler (m/s)')
-draw_z_v = fig_z_v.plot([], [], pen=None, symbol='o')
-
 # Main loop
 detObj = {}
 frameData = {}
 preprocessed_frameArray = []
 
 # reading RNN model
-
-if isPredict:
-    # regressive_classifier = NeuralNetwork()
-    # regressive_classifier.load(file_name='trained_models/radar_model/072319_02/regressive_classifier.h5')
-    onNotOn_ann_classifier = NeuralNetwork()
-    onNotOn_ann_classifier.load(file_name='F:/config_detection/models/onNotOn_ANN/classifier_080919_2.h5')
-    onNotOn_encoder = pickle.load(open('F:/config_detection/models/onNotOn_ANN/encoder_080919_2', 'rb'))
 
 rnn_timestep = 100
 num_padding = 50
@@ -201,7 +163,6 @@ while True:
         CLIport.write(('sensorStop\n').encode())
         CLIport.close()
         Dataport.close()
-        win.close()
 
         # stop prediction thread
         main_stop_event.set()
