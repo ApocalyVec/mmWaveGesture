@@ -10,6 +10,7 @@ import shutil
 
 import matplotlib.pyplot as plt
 from matplotlib import style
+from mpl_toolkits.mplot3d import axes3d, Axes3D #<-- Note the capitalization!
 
 from PIL import Image, ImageDraw, ImageFont
 from sklearn.cluster import DBSCAN
@@ -80,12 +81,12 @@ def snapPointsToVolume(points, volume_shape, isClipping=False, radius=3, decay=0
     return volume
 
 
-def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentation=(),
+def radar_data_grapher_volumned(paths, is_plot=False, isCluster=False, augmentation=(),
                                 seeds=np.random.normal(0, 0.02, 5000), isDataGen=True):
     # utility directory to save the pyplots
     radarData_path, videoData_path, mergedImg_path, out_path, identity_string = paths
 
-    radar_3dscatter_path = 'F:/indexPen/figures/utils/radar_3dscatter'
+    radar_3dscatter_path = 'E:/indexPen/figures/utils/radar_3dscatter'
 
     radar_data = list(pickle.load(open(radarData_path, 'rb')).items())
     radar_data.sort(key=lambda x: x[0])  # sort by timestamp
@@ -114,7 +115,7 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
     interval_index = 1
 
     # removed and recreate the merged image folder
-    if isplot:
+    if is_plot:
         if os.path.isdir(mergedImg_path):
             shutil.rmtree(mergedImg_path)
         os.mkdir(mergedImg_path)
@@ -145,8 +146,7 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
 
     label_array = []
 
-    num_write = 2
-    this_label = 1.0
+    this_label = 0
 
     for i, radarFrame in enumerate(radar_data):
 
@@ -156,32 +156,31 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
         # calculate the interval
         if (timestamp - starting_timestamp) >= 5.0:
             num_intervaled_samples = len(volumes_for_this_interval)
-            if num_intervaled_samples < sample_per_interval / 4:
+            if num_intervaled_samples < sample_per_interval / 8:
                 raise Exception('Not Enough Data Points, killed')
 
             # decide the label
-            if num_write == 1:
-                if interval_index % (5 * num_write) == 1:
-                    this_label = 0
-                elif interval_index % (5 * num_write) == 2:
-                    this_label = 1  # for label D
-                elif interval_index % (5 * num_write) == 3:
-                    this_label = 2  # for label L
-                elif interval_index % (5 * num_write) == 4:
-                    this_label = 3  # for label M
-                elif interval_index % (5 * num_write) == 0:
-                    this_label = 4  # for label P
-            elif num_write == 2:
-                if interval_index % (5 * num_write) == 1 or interval_index % (5 * num_write) == 2:
-                    this_label = 0
-                elif interval_index % (5 * num_write) == 3 or interval_index % (5 * num_write) == 4:
-                    this_label = 1  # for label D
-                elif interval_index % (5 * num_write) == 5 or interval_index % (5 * num_write) == 6:
-                    this_label = 2  # for label L
-                elif interval_index % (5 * num_write) == 7 or interval_index % (5 * num_write) == 8:
-                    this_label = 3  # for label M
-                elif interval_index % (5 * num_write) == 9 or interval_index % (5 * num_write) == 0:
-                    this_label = 4  # for label P
+            inter_arg = 20
+            if interval_index % inter_arg == 1 or interval_index % inter_arg == 2:
+                this_label = 0
+            elif interval_index % inter_arg == 3 or interval_index % inter_arg == 4:
+                this_label = 1  # for label D
+            elif interval_index % inter_arg == 5 or interval_index % inter_arg == 6:
+                this_label = 2  # for label L
+            elif interval_index % inter_arg == 7 or interval_index % inter_arg == 8:
+                this_label = 3  # for label M
+            elif interval_index % inter_arg == 9 or interval_index % inter_arg == 10:
+                this_label = 4  # for label P
+            elif interval_index % inter_arg == 11 or interval_index % inter_arg == 12:
+                this_label = 5  # for label D
+            elif interval_index % inter_arg == 13 or interval_index % inter_arg == 14:
+                this_label = 6  # for label L
+            elif interval_index % inter_arg == 15 or interval_index % inter_arg == 16:
+                this_label = 7  # for label M
+            elif interval_index % inter_arg == 17 or interval_index % inter_arg == 18:
+                this_label = 8  # for label P
+            elif interval_index % inter_arg == 19 or interval_index % inter_arg == 0:
+                this_label = 9  # for label P
             label_array.append(this_label)  # for label A
 
             print('Label for the last interval is ' + str(this_label) + ' Num Samples: ' + str(
@@ -204,7 +203,7 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
 
         print('Processing ' + str(i + 1) + ' of ' + str(len(radar_data)) + ', interval = ' + str(interval_index))
 
-        if isplot:
+        if is_plot:
             mergedImg_path_intervaled = os.path.join(mergedImg_path, str(interval_index - 1))
 
             if not os.path.isdir(mergedImg_path_intervaled):
@@ -245,7 +244,7 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
             n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
             n_noise_ = list(labels).count(-1)
 
-            if isplot:
+            if is_plot:
                 ax2 = plt.subplot(2, 2, 2, projection='3d')
                 ax2.set_xlim((-0.3, 0.3))
                 ax2.set_ylim((-0.3, 0.3))
@@ -271,7 +270,7 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
                     clusters.append(xyz)  # append this cluster data to the cluster list
                 # each cluster is a 3 * n matrix
                 xyz = data[class_member_mask & ~core_samples_mask]
-                if isplot:
+                if is_plot:
                     ax2.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=12,
                                 marker='X')  # plot the noise
 
@@ -283,7 +282,7 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
 
             # plot the clusters
             for xyz, col in zip(clusters, colors):
-                if isplot:
+                if is_plot:
                     ax2.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2], 'o', c=np.array([col]), s=28,
                                 marker='o')  # plot the cluster points
 
@@ -328,7 +327,7 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
                 s = 1 + random.choice(seeds)
                 hand_cluster[:, :3] = scale(hand_cluster[:, :3], x=s, y=s, z=s)
 
-            if isplot:
+            if is_plot:
                 ax3 = plt.subplot(2, 2, 3, projection='3d')
                 ax3.set_xlim((-0.3, 0.3))
                 ax3.set_ylim((-0.3, 0.3))
@@ -349,7 +348,7 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
 
         #################################################################
         # Combine the three images
-        if isplot:
+        if is_plot:
             plt.savefig(os.path.join(radar_3dscatter_path, str(timestamp) + '.jpg'))
             radar_3dscatter_img = Image.open(os.path.join(radar_3dscatter_path, str(timestamp) + '.jpg'))
 
@@ -402,28 +401,26 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
             print('Not Enough Data Points, saving')
         else:
             # decide the label
-            if num_write == 1:
-                if interval_index % (5 * num_write) == 1:
-                    this_label = 0
-                elif interval_index % (5 * num_write) == 2:
-                    this_label = 1  # for label D
-                elif interval_index % (5 * num_write) == 3:
-                    this_label = 2  # for label L
-                elif interval_index % (5 * num_write) == 4:
-                    this_label = 3  # for label M
-                elif interval_index % (5 * num_write) == 0:
-                    this_label = 4  # for label P
-            elif num_write == 2:
-                if interval_index % (5 * num_write) == 1 or interval_index % (5 * num_write) == 2:
-                    this_label = 0
-                elif interval_index % (5 * num_write) == 3 or interval_index % (5 * num_write) == 4:
-                    this_label = 1  # for label D
-                elif interval_index % (5 * num_write) == 5 or interval_index % (5 * num_write) == 6:
-                    this_label = 2  # for label L
-                elif interval_index % (5 * num_write) == 7 or interval_index % (5 * num_write) == 8:
-                    this_label = 3  # for label M
-                elif interval_index % (5 * num_write) == 9 or interval_index % (5 * num_write) == 0:
-                    this_label = 4  # for label P
+            if interval_index % inter_arg == 1 or interval_index % inter_arg == 2:
+                this_label = 0
+            elif interval_index % inter_arg == 3 or interval_index % inter_arg == 4:
+                this_label = 1  # for label D
+            elif interval_index % inter_arg == 5 or interval_index % inter_arg == 6:
+                this_label = 2  # for label L
+            elif interval_index % inter_arg == 7 or interval_index % inter_arg == 8:
+                this_label = 3  # for label M
+            elif interval_index % inter_arg == 9 or interval_index % inter_arg == 10:
+                this_label = 4  # for label P
+            elif interval_index % inter_arg == 11 or interval_index % inter_arg == 12:
+                this_label = 5  # for label D
+            elif interval_index % inter_arg == 13 or interval_index % inter_arg == 14:
+                this_label = 6  # for label L
+            elif interval_index % inter_arg == 15 or interval_index % inter_arg == 16:
+                this_label = 7  # for label M
+            elif interval_index % inter_arg == 17 or interval_index % inter_arg == 18:
+                this_label = 8  # for label P
+            elif interval_index % inter_arg == 19 or interval_index % inter_arg == 0:
+                this_label = 9  # for label P
             label_array.append(this_label)  # for label A
 
             print('Label for the last interval is ' + str(this_label) + ' Num Samples: ' + str(
@@ -448,13 +445,13 @@ def radar_data_grapher_volumned(paths, isplot=False, isCluster=False, augmentati
     interval_volume_array = np.asarray(interval_volume_list)
 
     # validate the output shapes
-    assert interval_volume_array.shape == (50, 100, 1) + volume_shape
-    assert len(label_array) == 50
+    assert interval_volume_array.shape == (60, 100, 1) + volume_shape
+    assert len(label_array) == 60
 
     print('Saving csv and npy to ' + out_path + '...')
     if isDataGen:
-        dataset_path = 'F:/indexPen/dataset'
-        label_dict_path = 'F:/indexPen/labels/label_dict.p'
+        dataset_path = 'E:/indexPen/dataset'
+        label_dict_path = 'E:/indexPen/labels/label_dict.p'
         # load label dict
         if os.path.exists(label_dict_path):
             label_dict = pickle.load(open(label_dict_path, 'rb'))
@@ -486,13 +483,13 @@ def generate_path(subject_name: str, case_index: int, mode='indexPen') -> tuple:
     f_dir = 'f_data_' + identity_string
     v_dir = 'v_data_' + identity_string
 
-    dataRootPath = 'F:/' + mode + '/data'
-    figureRootPath = 'F:/' + mode + '/figures'
+    dataRootPath = 'E:/' + mode + '/data'
+    figureRootPath = 'E:/' + mode + '/figures'
 
     radarData_path = os.path.join(dataRootPath, f_dir, 'f_data.p')
     videoData_path = os.path.join(dataRootPath, v_dir, 'cam2')
     mergedImg_path = os.path.join(figureRootPath, identity_string)
-    out_path = os.path.join('F:/' + mode + '/csv_augmented', identity_string)
+    out_path = os.path.join('E:/' + mode + '/csv_augmented', identity_string)
 
     return radarData_path, videoData_path, mergedImg_path, out_path, identity_string
 
