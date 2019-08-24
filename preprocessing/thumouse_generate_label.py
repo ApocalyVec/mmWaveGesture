@@ -11,11 +11,11 @@ zy = np.load('F:/thumouse/labels/radar_arrays/zy_radar_tracking.npy')
 all = np.concatenate((ag, zl, zy))
 mmScaler = MinMaxScaler()
 all[:, 3:] = mmScaler.fit_transform(all[:, 3:])
-pickle.dump(mmScaler, open('D:/thumouse/scaler/mmScaler.p', 'wb'))
+pickle.dump(mmScaler, open('D:/thumouse/scaler/thm_scaler.p', 'wb'))
 
 label_dict = dict()
 
-aug_strings = ['_clipping', '_trans_clipping']
+aug_strings = ['_trans', '_rot', '_scale', '_trans_rot', '_trans_scale', '_rot_scale', '_trans_rot_scale']
 
 for i, row in enumerate(all):
     print('Processing ' + str(i+1) + ' of ' + str(len(all)))
@@ -26,4 +26,4 @@ for i, row in enumerate(all):
         for aug_str in aug_strings:
             label_dict[str(row[0].as_integer_ratio()[0]) + '_' + str(row[0].as_integer_ratio()[1]) + aug_str] = np.asarray([row[3], row[4]])
 
-# label_dict_path = 'F:/thumouse/labels_timestep_1/label_dict.p'
+label_dict_path = 'D:/thumouse/labels_timestep_1_noClp/label_dict.p'
